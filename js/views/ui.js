@@ -8,9 +8,9 @@ const UI = {
                 <div class="header-stat money"><span class="stat-icon">💵</span><span class="stat-text" id="s-money"></span></div>
             </div>
             <div class="top-row mt-2">
-                <div class="header-stat"><span class="stat-icon">⭐</span><span class="stat-text">%<span id="s-pop"></span> Pop.</span></div>
-                <div class="header-stat" style="background:rgba(231,76,60,0.3);"><span class="stat-icon">🚚</span><span class="stat-text">Kargo: <span id="s-truck"></span></span></div>
-                <div class="header-stat" style="background:rgba(52,152,219,0.3);"><span class="stat-icon">📊</span><span class="stat-text">Pazar: %<span id="s-market-share"></span></span></div>
+                <div class="header-stat" style="cursor:pointer;" onclick="UI.openPanel('reviews')"><span class="stat-icon">⭐</span><span class="stat-text">%<span id="s-pop"></span> Pop.</span></div>
+                <div class="header-stat" style="background:rgba(231,76,60,0.3); cursor:pointer;" onclick="UI.openPanel('cargo')"><span class="stat-icon">🚚</span><span class="stat-text">Kargo: <span id="s-truck"></span></span></div>
+                <div class="header-stat" style="background:rgba(52,152,219,0.3); cursor:pointer;" onclick="UI.openPanel('market')"><span class="stat-icon">📊</span><span class="stat-text">Pazar: %<span id="s-market-share"></span></span></div>
             </div>
             <div class="storage-container mt-2">
                 <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:800; margin-bottom:5px;"><span>📦 Depo Doluluğu</span><span id="s-storage"></span></div>
@@ -64,6 +64,12 @@ const UI = {
                         <div class="mc-arrow">▶</div>
                     </div>
 
+                    <div class="manage-card" onclick="UI.openPanel('relations')">
+                        <div class="mc-icon" style="background:linear-gradient(135deg, #8e44ad, #2c3e50);">🤝</div>
+                        <div class="mc-content"><div class="mc-title">İlişki Yönetimi</div><div class="mc-desc">Toptancı, Bakanlık ve Mafya İlişkileri</div></div>
+                        <div class="mc-arrow">▶</div>
+                    </div>
+
                     <div class="page-header mt-2">Sistem Seçenekleri</div>
                     <div class="manage-card" onclick="UI.openPanel('roadmap')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #f39c12, #e67e22);">🗺️</div>
@@ -101,6 +107,10 @@ const UI = {
         <div class="floating-panel" id="panel-roadmap"><div class="panel-header"><span class="panel-title">🗺️ Yol Haritası</span><button class="btn-close" onclick="UI.closePanel('roadmap')">X</button></div><div class="panel-body" id="roadmap-view"></div></div>
         <div class="floating-panel" id="panel-calendar"><div class="panel-header"><span class="panel-title">📅 Şirket Günlüğü</span><button class="btn-close" onclick="UI.closePanel('calendar')">X</button></div><div class="panel-body" id="calendar-view"></div></div>
         <div class="floating-panel" id="panel-law"><div class="panel-header"><span class="panel-title">🧑‍⚖️ Hukuk Departmanı</span><button class="btn-close" onclick="UI.closePanel('law')">X</button></div><div class="panel-body" id="law-view"></div></div>
+        <div class="floating-panel" id="panel-relations"><div class="panel-header"><span class="panel-title">🤝 İlişki Yönetimi</span><button class="btn-close" onclick="UI.closePanel('relations')">X</button></div><div class="panel-body" id="relations-view"></div></div>
+        <div class="floating-panel" id="panel-reviews"><div class="panel-header"><span class="panel-title">⭐ Müşteri Yorumları</span><button class="btn-close" onclick="UI.closePanel('reviews')">X</button></div><div class="panel-body" id="reviews-view"></div></div>
+        <div class="floating-panel" id="panel-cargo"><div class="panel-header"><span class="panel-title">🚚 Gelen Kargolar</span><button class="btn-close" onclick="UI.closePanel('cargo')">X</button></div><div class="panel-body" id="cargo-view"></div></div>
+        <div class="floating-panel" id="panel-market"><div class="panel-header"><span class="panel-title">📊 Pazar Payı & Rakipler</span><button class="btn-close" onclick="UI.closePanel('market')">X</button></div><div class="panel-body" id="market-view"></div></div>
 
         <div class="fab-container"><button onclick="Engine.endDay()" class="btn btn-primary btn-massive">${t('endDay')}</button></div>
     `,
@@ -194,6 +204,7 @@ const UI = {
         let target = document.getElementById(id); if(target) target.classList.remove('hidden');
         let btn = document.getElementById('btn-' + id); if(btn) btn.classList.add('active');
         UI.currentTab = id;
+        UI.update();
     },
     
     openPanel: (id) => {
@@ -210,6 +221,7 @@ const UI = {
             }
         }
         if(App.zIndexCounter) p.style.zIndex = ++App.zIndexCounter;
+        UI.update();
     },
     closePanel: (id) => {
         if(typeof AudioSys !== 'undefined') AudioSys.tap();
@@ -222,6 +234,7 @@ const UI = {
             let g = App.state.g; 
             if(!g.tutorialDone && document.getElementById('main-content')) {
                 g.tutorialDone = true;
+                App.saveGame(false);
                 setTimeout(() => { if(typeof Tutorial !== 'undefined') { Tutorial.step = 0; Tutorial.show(); } }, 500);
             }
             Engine.checkQuests();
@@ -246,8 +259,23 @@ const UI = {
             if(g.trendDaysLeft > 0 && g.trendActive) { tBar.style.display = 'flex'; document.getElementById('s-trend').innerText = g.trendActive.name; document.getElementById('s-trend-days').innerText = g.trendDaysLeft; } 
             else tBar.style.display = 'none';
 
-            UI.renderShopTab(); UI.renderInvTab(); UI.renderStaffTab(); UI.renderB2BTab();
-            UI.renderFinancePanel(); UI.renderRDPanel(); UI.renderUpgradesPanel(); UI.renderFactoryPanel(); UI.renderSettingsPanel(); UI.renderRoadmapPanel(); UI.renderCalendarPanel(); UI.renderLawPanel();
+            if (UI.currentTab === 'tab-shop') UI.renderShopTab();
+            if (UI.currentTab === 'tab-inv') UI.renderInvTab();
+            if (UI.currentTab === 'tab-staff') UI.renderStaffTab();
+            if (UI.currentTab === 'tab-b2b') UI.renderB2BTab();
+            
+            if (document.getElementById('panel-finance') && document.getElementById('panel-finance').classList.contains('open')) UI.renderFinancePanel();
+            if (document.getElementById('panel-rd') && document.getElementById('panel-rd').classList.contains('open')) UI.renderRDPanel();
+            if (document.getElementById('panel-upgrades') && document.getElementById('panel-upgrades').classList.contains('open')) UI.renderUpgradesPanel();
+            if (document.getElementById('panel-factory') && document.getElementById('panel-factory').classList.contains('open')) UI.renderFactoryPanel();
+            if (document.getElementById('panel-settings') && document.getElementById('panel-settings').classList.contains('open')) UI.renderSettingsPanel();
+            if (document.getElementById('panel-roadmap') && document.getElementById('panel-roadmap').classList.contains('open')) UI.renderRoadmapPanel();
+            if (document.getElementById('panel-calendar') && document.getElementById('panel-calendar').classList.contains('open')) UI.renderCalendarPanel();
+            if (document.getElementById('panel-law') && document.getElementById('panel-law').classList.contains('open')) UI.renderLawPanel();
+            if (document.getElementById('panel-relations') && document.getElementById('panel-relations').classList.contains('open')) UI.renderRelationsPanel();
+            if (document.getElementById('panel-reviews') && document.getElementById('panel-reviews').classList.contains('open')) UI.renderReviewsPanel();
+            if (document.getElementById('panel-cargo') && document.getElementById('panel-cargo').classList.contains('open')) UI.renderCargoPanel();
+            if (document.getElementById('panel-market') && document.getElementById('panel-market').classList.contains('open')) UI.renderMarketPanel();
         } catch(e) { console.error("UI Update Hata:", e); }
     },
 
@@ -259,8 +287,22 @@ const UI = {
         }
         for (let k in GameData.products) {
             if (!g.unlocked[k]) continue;
-            let p = GameData.products[k]; let basePrice = p.buy * (g.modifiers ? g.modifiers.buyMod : 1); if(g.skills && g.skills.negotiator && g.skills.negotiator.unlocked) basePrice *= 0.9;
-            h += `<div class="item-row"><div class="item-info"><span class="item-title">${p.name}</span><span class="item-sub">Alış: ${App.formatMoney(Math.floor(basePrice))} | Hacim: ${p.space} br</span></div><div class="item-action" style="flex-direction:row;"><button class="btn" onclick="Engine.buyProduct('${k}', 1)">1 Al</button><button class="btn btn-purple" onclick="Engine.buyProduct('${k}', 10)">10 Al</button></div></div>`;
+            let p = GameData.products[k]; 
+            let basePrice = Engine.getProductBuyPrice(k);
+            let sellWholesale = Math.floor(basePrice * 0.5);
+            let stock = g.inventory[k] || 0;
+            h += `<div class="item-row" style="flex-wrap: wrap; gap: 10px;">
+                <div class="item-info" style="flex: 1; min-width: 140px;">
+                    <span class="item-title">${p.name} (Stok: ${stock})</span>
+                    <span class="item-sub">Alış: ${App.formatMoney(basePrice)} | İade: ${App.formatMoney(sellWholesale)}</span>
+                    <span class="item-sub">Hacim: ${p.space} br</span>
+                </div>
+                <div class="item-action" style="flex-direction:row; flex-wrap:wrap; gap:5px; justify-content:flex-end;">
+                    <button class="btn btn-danger" onclick="Engine.sellProductWholesale('${k}', 10)" ${stock < 10 ? 'disabled' : ''}>10 Sat</button>
+                    <button class="btn" onclick="Engine.buyProduct('${k}', 1)">1 Al</button>
+                    <button class="btn btn-purple" onclick="Engine.buyProduct('${k}', 10)">10 Al</button>
+                </div>
+            </div>`;
         }
         document.getElementById('shop-view').innerHTML = h;
     },
@@ -270,11 +312,12 @@ const UI = {
         for (let k in GameData.products) {
             if(g.unlocked[k]) {
                 let p = GameData.products[k];
-                let currentPrice = p.sell;
+                let baseSell = Engine.getProductBaseSellPrice(k);
+                let currentPrice = baseSell;
                 if (g.customPrice && g.customPrice[k] !== undefined) currentPrice = g.customPrice[k];
                 else if (g.pricing && g.pricing[k]) {
-                    if (g.pricing[k] === 'cheap') currentPrice = Math.floor(p.sell * 0.7);
-                    else if (g.pricing[k] === 'expensive') currentPrice = Math.floor(p.sell * 1.5);
+                    if (g.pricing[k] === 'cheap') currentPrice = Math.floor(baseSell * 0.7);
+                    else if (g.pricing[k] === 'expensive') currentPrice = Math.floor(baseSell * 1.5);
                 }
 
                 h += `<div class="panel mb-2">
@@ -284,8 +327,8 @@ const UI = {
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border: 1px solid rgba(0,0,0,0.05);">
                         <div style="display:flex; flex-direction:column; gap:4px;">
-                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">Birim Maliyet: <b style="color:var(--danger);">${App.formatMoney(p.buy)}</b></span>
-                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">Önerilen: <b>${App.formatMoney(p.sell)}</b></span>
+                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">Birim Maliyet: <b style="color:var(--danger);">${App.formatMoney(Engine.getProductBuyPrice(k))}</b></span>
+                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">Önerilen: <b>${App.formatMoney(baseSell)}</b></span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px; background:white; padding:5px 8px; border-radius:12px; border:2px solid var(--primary); box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                             <button class="btn btn-danger" style="padding:4px 12px; font-size:1.4rem; font-weight:900; border-radius:8px; line-height:1;" onclick="Engine.adjustPrice('${k}', -1)">-</button>
@@ -300,8 +343,14 @@ const UI = {
         for (let k in GameData.products) {
             if (!g.unlocked[k]) {
                 let p = GameData.products[k];
-                if (p.reqBuild > g.buildingLevel) h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${p.name} Reyonu</span><span class="item-sub" style="color:var(--danger);">Seviye ${p.reqBuild} Bina Gerekli</span></div></div>`;
-                else h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">🛒 ${p.name} Reyonu</span><span class="item-sub">Kurulum Maliyeti: ${App.formatMoney(p.unlock)}</span></div><div class="item-action"><button class="btn btn-warning" onclick="Engine.unlockDept('${k}')">Kur</button></div></div>`;
+                let questReq = p.reqQuest && (!g.quests[p.reqQuest] || !g.quests[p.reqQuest].done);
+                if (p.reqBuild > g.buildingLevel) {
+                    h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${p.name} Reyonu</span><span class="item-sub" style="color:var(--danger);">Seviye ${p.reqBuild} Bina Gerekli</span></div></div>`;
+                } else if (questReq) {
+                    h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${p.name} Reyonu</span><span class="item-sub" style="color:var(--danger);">"${g.quests[p.reqQuest].title}" Görevi Tamamlanmalı</span></div></div>`;
+                } else {
+                    h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">🛒 ${p.name} Reyonu</span><span class="item-sub">Kurulum Maliyeti: ${App.formatMoney(p.unlock)}</span></div><div class="item-action"><button class="btn btn-warning" onclick="Engine.unlockDept('${k}')">Kur</button></div></div>`;
+                }
             }
         }
         document.getElementById('inv-view').innerHTML = h;
@@ -326,7 +375,11 @@ const UI = {
         if(!g.availableContracts || g.availableContracts.length === 0) h += `<div class="panel text-center">Şu an açık bir ihale yok.</div>`;
         else {
             g.availableContracts.forEach((c, idx) => {
-                h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">İstenen: <strong>${c.qty}x ${GameData.products[c.item].name}</strong> (${c.days} Gün)</span><span class="item-sub green">Ödül: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Ceza: -${App.formatMoney(c.penalty)}</span></div><div class="item-action"><button class="btn btn-purple" onclick="Engine.acceptContract(${idx})">Kabul Et</button></div></div>`;
+                if(c.isBribe) {
+                    h += `<div class="item-row" style="background:#fff3cd; border-color:#ffeeba;"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">Gizli bir ödeme karşılığı iyilik isteniyor.</span><span class="item-sub green">Ödeme: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Bedeli: İtibar Kaybı</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.acceptContract(${idx})">Kabul Et</button></div></div>`;
+                } else {
+                    h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">İstenen: <strong>${c.qty}x ${GameData.products[c.item].name}</strong> (${c.days} Gün)</span><span class="item-sub green">Ödül: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Ceza: -${App.formatMoney(c.penalty)}</span></div><div class="item-action"><button class="btn btn-purple" onclick="Engine.acceptContract(${idx})">Kabul Et</button></div></div>`;
+                }
             });
         }
         h += `<div class="page-header mt-2">Aktif Sözleşmeler</div>`;
@@ -486,6 +539,124 @@ const UI = {
             });
         }
         document.getElementById('calendar-view').innerHTML = h;
+    },
+
+    renderRelationsPanel: () => {
+        let g = App.state.g; let h = '';
+        if(!g.relations) g.relations = { wholesaler: 50, minister: 50, mafia: 10 };
+        
+        h += `<div class="panel text-center mb-2" style="background:var(--primary-dark); color:white;">
+            <div style="font-size:1.4rem; font-weight:900;">🤝 İlişki Yönetimi</div>
+            <div style="font-size:0.9rem; opacity:0.9;">Tedarikçiler ve güç sahipleriyle aranı iyi tut.</div>
+        </div>`;
+        
+        let rels = [
+            { id: 'wholesaler', name: 'Toptancılar Birliği', icon: '📦', desc: 'İlişki yüksekse malları daha ucuza alırsın. Düşükse fiyatlar artar.', cost: 5000, boost: 10 },
+            { id: 'minister', name: 'Maliye Bakanlığı', icon: '🏛️', desc: 'İlişki yüksekse vergi afları ve hibeler alırsın. Düşükse denetimler artar.', cost: 15000, boost: 10 },
+            { id: 'mafia', name: 'Yerel Mafya (Rüşvet)', icon: '🕶️', desc: 'İlişki yüksekse rakiplerini sabote ederler. Düşükse dükkanına zarar verebilirler.', cost: 25000, boost: 20 }
+        ];
+
+        rels.forEach(r => {
+            let val = g.relations[r.id];
+            let color = val >= 80 ? 'var(--success)' : (val < 30 ? 'var(--danger)' : '#f39c12');
+            let status = val >= 80 ? 'Mükemmel' : (val < 30 ? 'Düşmanca' : 'Nötr');
+            
+            h += `<div class="panel mb-2">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span style="font-weight:900; font-size:1.1rem;">${r.icon} ${r.name}</span>
+                    <span style="color:${color}; font-weight:bold;">${val}/100 (${status})</span>
+                </div>
+                <div class="progress-bar mb-2" style="height:8px; background:rgba(0,0,0,0.1);"><div class="progress-fill" style="width:${val}%; background:${color};"></div></div>
+                <div style="font-size:0.85rem; color:var(--text-dark); margin-bottom:10px;">${r.desc}</div>
+                <div style="text-align:right;">
+                    <button class="btn btn-primary" onclick="Engine.improveRelation('${r.id}', ${r.cost}, ${r.boost})">Bağış Yap (${App.formatMoney(r.cost)})</button>
+                </div>
+            </div>`;
+        });
+        
+        document.getElementById('relations-view').innerHTML = h;
+    },
+
+    renderReviewsPanel: () => {
+        let g = App.state.g; let h = '';
+        if(!g.reviews || g.reviews.length === 0) {
+            h += `<div class="panel text-center mb-2" style="color:var(--text-light); font-weight:bold;">Henüz hiç müşteri yorumu yok. İlk gününü bitirdiğinde buraya yorumlar düşecek!</div>`;
+        } else {
+            g.reviews.forEach((rev) => {
+                let ratingCount = (rev.text.match(/⭐/g) || []).length;
+                let color = ratingCount >= 4 ? 'var(--success)' : (ratingCount <= 2 ? 'var(--danger)' : '#f39c12');
+                h += `<div class="panel mb-2" style="padding:12px; border-left:4px solid ${color};">
+                    <div style="font-weight:900; font-size:0.85rem; color:var(--primary-dark); margin-bottom:5px;">📅 ${rev.date}</div>
+                    <div style="font-size:0.95rem; line-height:1.4; color:var(--text-dark); font-style:italic;">"${rev.text}"</div>
+                </div>`;
+            });
+        }
+        document.getElementById('reviews-view').innerHTML = h;
+    },
+
+    renderCargoPanel: () => {
+        let g = App.state.g; let h = '';
+        if(!g.incomingCargo || g.incomingCargo.length === 0) {
+            h += `<div class="panel text-center mb-2" style="color:var(--text-light); font-weight:bold;">Şu an yolda olan bir kargo yok. Siparişlerinizi Mağaza sekmesinden verebilirsiniz.</div>`;
+        } else {
+            g.incomingCargo.forEach((c) => {
+                let p = GameData.products[c.id];
+                h += `<div class="item-row" style="background:rgba(52, 152, 219, 0.05); border:1px solid rgba(52, 152, 219, 0.3);">
+                    <div class="item-info">
+                        <span class="item-title">📦 ${p.name} (x${c.qty})</span>
+                        <span class="item-sub">Toplam Hacim: <b>${c.space} br</b></span>
+                    </div>
+                    <div class="item-action" style="font-weight:900; color:var(--primary); font-size:1.1rem; text-align:center;">
+                        Kalan:<br>${c.daysLeft} Gün
+                    </div>
+                </div>`;
+            });
+        }
+        document.getElementById('cargo-view').innerHTML = h;
+    },
+
+    renderMarketPanel: () => {
+        let g = App.state.g; let h = '';
+        let myShare = g.marketShare || 5.0;
+        let rivalShare = 100.0 - myShare;
+
+        h += `<div class="panel text-center mb-2" style="background:var(--primary-dark); color:white;">
+            <div style="font-size:1.4rem; font-weight:900;">📊 Pazar Payı Raporu</div>
+            <div style="font-size:0.9rem; opacity:0.9;">Piyasadaki etkinliğini ve rakiplerini gör.</div>
+        </div>`;
+
+        h += `<div class="panel mb-2">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-weight:900; font-size:1.1rem; color:var(--success);">Sen (%${myShare.toFixed(1)})</span>
+                <span style="font-weight:900; font-size:1.1rem; color:var(--danger);">Rakip (%${rivalShare.toFixed(1)})</span>
+            </div>
+            <div class="progress-bar mb-2" style="height:15px; border-radius:10px; background:var(--danger); display:flex;">
+                <div class="progress-fill" style="width:${myShare}%; background:var(--success); border-radius:10px 0 0 10px;"></div>
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-dark);">
+                <ul>
+                    <li>Pazar payını artırmak için fiyatlarını düşürebilir, popülariteni yüksek tutabilirsin.</li>
+                    <li>Rakibini yenersen pazarı tekeline alırsın!</li>
+                </ul>
+            </div>
+        </div>`;
+
+        if (!g.rivalDefeated) {
+            h += `<div class="item-row mt-2" style="background:#fff3cd; border:1px solid #ffeeba;">
+                <div class="item-info">
+                    <span class="item-title" style="color:#856404;">🏆 Büyük Satın Alma</span>
+                    <span class="item-sub">Rakibini tamamen piyasadan silmek için Pazar Payının <b>%99</b>, bakiyenin ise <b>$1,000,000</b> olması gerekir.</span>
+                </div>
+                <div class="item-action">
+                    <button class="btn btn-warning" onclick="Engine.buyoutRival()">Rakibi Satın Al</button>
+                </div>
+            </div>`;
+        } else {
+            h += `<div class="panel text-center mt-2" style="color:var(--success); font-weight:900; font-size:1.1rem;">
+                🏆 RAKİP YOK EDİLDİ! PİYASANIN TEK HAKİMİ SENSİN!
+            </div>`;
+        }
+        document.getElementById('market-view').innerHTML = h;
     },
 
     renderUpgradesPanel: () => {

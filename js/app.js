@@ -47,7 +47,13 @@ const App = {
         App.navigate('game');
     },
     deleteCareer: (slotId) => {
-        if(confirm(t('delete') + "?")) { StateManager.deleteSlot(slotId); App.navigate('careers'); }
+        App.showModal("Kariyeri Sil", "Bu kariyeri tamamen silmek istediğine emin misin? Bu işlem geri alınamaz.", `
+            <button class="btn btn-danger" onclick="App.doDeleteCareer(${slotId})">Evet, Sil</button>
+            <button class="btn" onclick="App.closeModal()">Vazgeç</button>
+        `);
+    },
+    doDeleteCareer: (slotId) => {
+        StateManager.deleteSlot(slotId); App.closeModal(); App.navigate('careers');
     },
     saveGame: (showMsg = false) => {
         if(App.state.currentSlot && App.state.g) {
@@ -78,9 +84,11 @@ const App = {
         c.appendChild(t); requestAnimationFrame(() => { t.classList.add('show'); });
         setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2500);
     },
-    showModal: (title, desc) => {
+    showModal: (title, desc, buttonsHTML) => {
         document.getElementById('modal-title').innerText = title;
         document.getElementById('modal-desc').innerHTML = desc;
+        let actions = document.getElementById('modal-actions');
+        if(actions) actions.innerHTML = buttonsHTML || `<button class="btn btn-primary" onclick="App.closeModal()">Tamam</button>`;
         document.getElementById('modal-overlay').classList.remove('hidden');
     },
     closeModal: () => { document.getElementById('modal-overlay').classList.add('hidden'); }

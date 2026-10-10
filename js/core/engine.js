@@ -5,25 +5,41 @@ const Engine = {
     getBasePop: () => { let g = App.state.g; let pop = g.popularity; if(g.buildingLevel >= 2) pop += GameData.buildings[2].popBoost; if(g.buildingLevel >= 3) pop += GameData.buildings[3].popBoost; return pop; },
     addLog: (msg) => { App.state.g.logs.push(`<div class="log-entry">${msg}</div>`); },
     
+    getProductBuyPrice: (id) => {
+        let g = App.state.g; let p = GameData.products[id];
+        let basePrice = p.buy;
+        if(g.relations && g.relations.wholesaler !== undefined) basePrice *= (1.3 - (g.relations.wholesaler / 100) * 0.6);
+        if(g.skills && g.skills.negotiator && g.skills.negotiator.unlocked) basePrice *= 0.9;
+        if(g.trendActive && g.trendActive.effect[p.category]) basePrice *= g.trendActive.effect[p.category];
+        return Math.max(1, Math.floor(basePrice));
+    },
+    getProductBaseSellPrice: (id) => {
+        let g = App.state.g; let p = GameData.products[id];
+        let basePrice = p.sell;
+        if(g.trendActive && g.trendActive.effect[p.category]) basePrice *= g.trendActive.effect[p.category];
+        return Math.max(1, Math.floor(basePrice));
+    },
+
     adjustPrice: (id, delta) => {
         let g = App.state.g;
         let p = GameData.products[id];
         if(!g.customPrice) g.customPrice = {};
         
-        let currentPrice = p.sell;
+        let currentPrice = Engine.getProductBaseSellPrice(id);
         if(g.customPrice[id] !== undefined) currentPrice = g.customPrice[id];
         else if(g.pricing && g.pricing[id]) {
-            if(g.pricing[id] === 'cheap') currentPrice = Math.floor(p.sell * 0.7);
-            else if(g.pricing[id] === 'expensive') currentPrice = Math.floor(p.sell * 1.5);
+            if(g.pricing[id] === 'cheap') currentPrice = Math.floor(Engine.getProductBaseSellPrice(id) * 0.7);
+            else if(g.pricing[id] === 'expensive') currentPrice = Math.floor(Engine.getProductBaseSellPrice(id) * 1.5);
         }
         
         let step = 1;
-        if (p.sell >= 100) step = 10;
-        if (p.sell >= 1000) step = 100;
-        if (p.sell >= 10000) step = 1000;
+        if (currentPrice >= 100) step = 10;
+        if (currentPrice >= 1000) step = 100;
+        if (currentPrice >= 10000) step = 1000;
         
         let newPrice = currentPrice + (delta * step);
-        if (newPrice < p.buy) newPrice = p.buy; // Do not allow selling below cost
+        let minBuy = Engine.getProductBuyPrice(id);
+        if (newPrice < minBuy) newPrice = minBuy; // Do not allow selling below cost
         if (newPrice < 1) newPrice = 1;
         
         g.customPrice[id] = newPrice;
@@ -32,16 +48,35 @@ const Engine = {
     },
     
     buyProduct: (id, qty) => {
-        let g = App.state.g; let p = GameData.products[id]; let basePrice = p.buy * (g.modifiers ? g.modifiers.buyMod : 1); if(g.skills && g.skills.negotiator && g.skills.negotiator.unlocked) basePrice *= 0.9;
-        let cost = Math.floor(basePrice) * qty; let actStore = g.storageCapacity; if(g.skills && g.skills.storageOpt && g.skills.storageOpt.unlocked) actStore = Math.floor(actStore * 1.2);
+        let g = App.state.g; let p = GameData.products[id]; 
+        let cost = Engine.getProductBuyPrice(id) * qty; 
+        let actStore = g.storageCapacity; if(g.skills && g.skills.storageOpt && g.skills.storageOpt.unlocked) actStore = Math.floor(actStore * 1.2);
         let trReq = p.space * qty; let trMax = Engine.getTotalTransportCap();
 
         if (g.currentTransportUsed + trReq > trMax) { AudioSys.error(); App.showNotify("Kargo kapasiten yetersiz! Araç filonu büyüt."); return; }
         if (g.money >= cost && g.currentStorage + (p.space * qty) <= actStore) { 
-            Engine.spendMoney(cost); g.inventory[id] += qty; g.currentStorage += (p.space * qty); 
+            Engine.spendMoney(cost);
             g.currentTransportUsed += trReq;
-            AudioSys.buy(); App.showNotify(`${qty}x ${p.name} yola çıktı!`); UI.update(); 
+            g.currentStorage += (p.space * qty);
+            
+            if(!g.incomingCargo) g.incomingCargo = [];
+            let baseDays = p.cargoDays || 2;
+            let daysToArrive = (g.staff && g.staff.warehouse) ? Math.max(1, baseDays - g.staff.warehouse) : baseDays;
+            g.incomingCargo.push({ id: id, qty: qty, daysLeft: daysToArrive, space: p.space * qty });
+            
+            AudioSys.buy(); App.showNotify(`${qty}x ${p.name} siparişi verildi! (${daysToArrive} gün)`); UI.update(); 
         } else { AudioSys.error(); App.showNotify("Yetersiz bakiye veya depo alanı!"); }
+    },
+
+    sellProductWholesale: (id, qty) => {
+        let g = App.state.g; let p = GameData.products[id];
+        if (g.inventory[id] >= qty) {
+            let earn = Math.floor(Engine.getProductBuyPrice(id) * 0.5) * qty;
+            g.inventory[id] -= qty;
+            g.currentStorage -= (p.space * qty);
+            Engine.earnMoney(earn);
+            AudioSys.cash(); App.showNotify(`${qty}x ${p.name} toptancıya iade edildi!`); UI.update();
+        } else { AudioSys.error(); App.showNotify("Depoda o kadar ürün yok!"); }
     },
     
     buyBlackMarket: (qty) => {
@@ -85,7 +120,10 @@ const Engine = {
         Engine.earnMoney(amount);
         let daily = Math.ceil(totalRepay / days);
         g.activeLoans.push({ amount: amount, total: totalRepay, dailyPayment: daily, daysLeft: days, type: type });
-        AudioSys.cash(); App.showNotify(`${type} Çekildi!`); UI.update();
+        g.popularity = Math.max(0, g.popularity - 10);
+        if(!g.rivalDefeated) g.marketShare = Math.max(1.0, (g.marketShare || 5.0) - 2.0);
+        Engine.addLog(`📉 Kredi Çekildi: Müşteri güveni sarsıldı (Popülarite -10, Pazar Payı -%2.0)`);
+        AudioSys.cash(); App.showNotify(`${type} Çekildi! (Popülarite Düştü)`); UI.update();
     },
     payOffLoan: (idx) => {
         let g = App.state.g;
@@ -100,6 +138,11 @@ const Engine = {
     },
     hireLawyer: (level) => {
         App.state.g.lawyerLevel = level;
+        if(level === 3) {
+            App.state.g.popularity = Math.max(0, App.state.g.popularity - 15);
+            if(!App.state.g.rivalDefeated) App.state.g.marketShare = Math.max(1.0, (App.state.g.marketShare || 5.0) - 2.0);
+            Engine.addLog("😈 Şeytanın Avukatı kiralandı. Halk bunu hiç sevmedi! (Popülarite -15, Pazar Payı -2.0)");
+        }
         AudioSys.success();
         App.showNotify("Avukat değiştirildi.");
         UI.update();
@@ -127,12 +170,42 @@ const Engine = {
     checkQuests: () => {
         let g = App.state.g;
         if(!g || !g.quests) return;
-        if(g.quests.q1 && !g.quests.q1.done && g.money >= g.quests.q1.reqMoney) g.quests.q1.done = true;
-        if(g.quests.q2 && !g.quests.q2.done && g.stocks.gold && g.stocks.gold.shares >= g.quests.q2.reqGold) g.quests.q2.done = true;
-        if(g.quests.q3 && !g.quests.q3.done && g.fleet && g.fleet.truck && g.fleet.truck.count > 0) g.quests.q3.done = true;
-        if(g.quests.q4 && !g.quests.q4.done && g.buildingLevel >= 2) g.quests.q4.done = true;
-        if(g.quests.q5 && !g.quests.q5.done && g.inventory.car > 0) g.quests.q5.done = true;
-        if(g.quests.q5 && !g.quests.q5.done && g.unlocked.car) g.quests.q5.done = true; 
+        
+        let newlyCompleted = [];
+        
+        if(g.quests.q1 && !g.quests.q1.done && g.money >= g.quests.q1.reqMoney) { g.quests.q1.done = true; newlyCompleted.push(g.quests.q1); }
+        if(g.quests.q2 && !g.quests.q2.done && g.stocks.gold && g.stocks.gold.shares >= g.quests.q2.reqGold) { g.quests.q2.done = true; newlyCompleted.push(g.quests.q2); }
+        if(g.quests.q3 && !g.quests.q3.done && g.fleet && g.fleet.truck && g.fleet.truck.count > 0) { g.quests.q3.done = true; newlyCompleted.push(g.quests.q3); }
+        if(g.quests.q4 && !g.quests.q4.done && g.buildingLevel >= 2) { g.quests.q4.done = true; newlyCompleted.push(g.quests.q4); }
+        if(g.quests.q5 && !g.quests.q5.done && (g.inventory.car > 0 || g.unlocked.car)) { g.quests.q5.done = true; newlyCompleted.push(g.quests.q5); }
+        
+        if(g.quests.q6 && !g.quests.q6.done && g.staff.cashier >= g.quests.q6.reqCashier) { g.quests.q6.done = true; newlyCompleted.push(g.quests.q6); }
+        if(g.quests.q7 && !g.quests.q7.done && Engine.getBasePop() >= g.quests.q7.reqPop) { g.quests.q7.done = true; newlyCompleted.push(g.quests.q7); }
+        if(g.quests.q8 && !g.quests.q8.done && g.unlocked.laptop) { g.quests.q8.done = true; newlyCompleted.push(g.quests.q8); }
+        if(g.quests.q9 && !g.quests.q9.done && g.money >= g.quests.q9.reqMoney2) { g.quests.q9.done = true; newlyCompleted.push(g.quests.q9); }
+        if(g.quests.q10 && !g.quests.q10.done && g.fleet && g.fleet.plane && g.fleet.plane.count > 0) { g.quests.q10.done = true; newlyCompleted.push(g.quests.q10); }
+        if(g.quests.q11 && !g.quests.q11.done && g.staff && g.staff.guard >= g.quests.q11.reqGuard) { g.quests.q11.done = true; newlyCompleted.push(g.quests.q11); }
+        if(g.quests.q12 && !g.quests.q12.done && (g.corporateRep || 0) >= g.quests.q12.reqRep) { g.quests.q12.done = true; newlyCompleted.push(g.quests.q12); }
+        if(g.quests.q13 && !g.quests.q13.done && g.relations && g.relations.mafia >= g.quests.q13.reqMafia) { g.quests.q13.done = true; newlyCompleted.push(g.quests.q13); }
+        if(g.quests.q14 && !g.quests.q14.done && g.money >= g.quests.q14.reqMoney3) { g.quests.q14.done = true; newlyCompleted.push(g.quests.q14); }
+        if(g.quests.q15 && !g.quests.q15.done && g.rivalDefeated) { g.quests.q15.done = true; newlyCompleted.push(g.quests.q15); }
+        if (newlyCompleted.length > 0) {
+            newlyCompleted.forEach(q => {
+                if(typeof AudioSys !== 'undefined') AudioSys.success();
+                App.showNotify(`Görev Tamamlandı: ${q.title}!`, 'success');
+            });
+            
+            let allDone = true;
+            for(let key in g.quests) {
+                if(!g.quests[key].done) { allDone = false; break; }
+            }
+            if(allDone && !g.allQuestsCompletedNotified) {
+                g.allQuestsCompletedNotified = true;
+                setTimeout(() => {
+                    App.showModal("🏆 TÜM GÖREVLER TAMAMLANDI!", "Tebrikler! Oyundaki tüm hedeflere ulaştın ve gerçek bir iş insanı olduğunu kanıtladın.");
+                }, 1000);
+            }
+        }
     },
     claimQuest: (id) => { let g = App.state.g; if(g.quests[id].done && !g.quests[id].claimed) { g.quests[id].claimed = true; g.researchPoints += g.quests[id].rp; AudioSys.success(); App.showNotify(`Görev Tamamlandı! +${g.quests[id].rp} RP`); UI.update(); } },
     
@@ -181,12 +254,35 @@ const Engine = {
             UI.update();
         } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); }
     },
+    improveRelation: (id, cost, boost) => {
+        let g = App.state.g;
+        if(g.money >= cost) {
+            if(!g.relations) g.relations = { wholesaler: 50, minister: 50, mafia: 10 };
+            if(g.relations[id] >= 100) { AudioSys.error(); App.showNotify("İlişki zaten maksimumda!"); return; }
+            Engine.spendMoney(cost);
+            g.relations[id] = Math.min(100, g.relations[id] + boost);
+            AudioSys.success();
+            App.showNotify("İlişki geliştirildi!");
+            UI.update();
+        } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); }
+    },
     setFactoryItem: (id) => { App.state.g.factory.activeItem = id; AudioSys.click(); UI.update(); },
 
     acceptContract: (idx) => {
         let g = App.state.g;
         if(g.contracts.length >= 3) { AudioSys.error(); App.showNotify("Aynı anda en fazla 3 sözleşme alabilirsin."); return; }
         let c = g.availableContracts.splice(idx, 1)[0];
+        
+        if (c.isBribe) {
+            Engine.earnMoney(c.reward);
+            g.popularity = Math.max(0, g.popularity - 20);
+            g.corporateRep = Math.max(0, (g.corporateRep || 0) - 15);
+            if(!g.rivalDefeated) g.marketShare = Math.max(1.0, (g.marketShare || 5.0) - 3.0);
+            Engine.addLog(`🕶️ Mafyanın rüşvetini kabul ettin! (+${App.formatMoney(c.reward)}, İtibar Düştü)`);
+            AudioSys.cash(); App.showNotify("Rüşvet Alındı!"); UI.update();
+            return;
+        }
+        
         g.contracts.push(c);
         AudioSys.buy(); App.showNotify("İhale kabul edildi! Zamanında teslim et."); UI.update();
     },
@@ -218,6 +314,22 @@ const Engine = {
         if(Math.random() < 0.2) { g.blackMarketActive = true; let keys = Object.keys(GameData.products); g.blackMarketItem = keys[Math.floor(Math.random() * keys.length)]; } 
         else { g.blackMarketActive = false; }
         
+        // Incoming Cargo Processing
+        if(g.incomingCargo) {
+            let stillIncoming = [];
+            for(let i=0; i<g.incomingCargo.length; i++) {
+                let c = g.incomingCargo[i];
+                c.daysLeft--;
+                if(c.daysLeft <= 0) {
+                    g.inventory[c.id] += c.qty;
+                    Engine.addLog(`📦 Kargo Teslim Edildi: ${c.qty}x ${GameData.products[c.id].name}`);
+                } else {
+                    stillIncoming.push(c);
+                }
+            }
+            g.incomingCargo = stillIncoming;
+        }
+        
         // Factory Production Loop
         if(g.factory && g.factory.owned && g.factory.activeItem) {
             let p = GameData.products[g.factory.activeItem];
@@ -244,20 +356,28 @@ const Engine = {
         if(!g.contracts) g.contracts = [];
         
         if (g.availableContracts.length < 3 && Math.random() < 0.4) {
-            let clients = ["Belediye", "Lüks Otel", "Okul Kantini", "Hastane", "Plaza", "Askeriye", "Festival Organizatörü"];
-            let keys = Object.keys(GameData.products).filter(k => g.unlocked[k]);
-            if(keys.length > 0) {
-                let item = keys[Math.floor(Math.random() * keys.length)];
-                let p = GameData.products[item];
-                let qty = 20 + Math.floor(Math.random() * 80);
-                if(item === 'car' || item === 'tv') qty = 2 + Math.floor(Math.random() * 5); 
-                let reward = Math.floor(p.sell * qty * (1.2 + Math.random() * 0.5)); 
-                let penalty = Math.floor(reward * 0.5);
+            if (Math.random() < 0.2) {
+                let bribeAmt = 15000 + Math.floor(Math.random() * 35000);
                 g.availableContracts.push({
-                    client: clients[Math.floor(Math.random() * clients.length)],
-                    item: item, qty: qty, reward: reward, penalty: penalty, days: 3 + Math.floor(Math.random()*4)
+                    client: "🕶️ Mafya Bağlantısı", item: "apple", qty: 0, reward: bribeAmt, penalty: 0, days: 2, isBribe: true
                 });
-                Engine.addLog(`🤝 Yeni B2B İhalesi teklifi geldi!`);
+                Engine.addLog(`🕶️ Mafyadan reddedemeyeceğin bir 'teklif' geldi! (B2B sekmesine bak)`);
+            } else {
+                let clients = ["Belediye", "Lüks Otel", "Okul Kantini", "Hastane", "Plaza", "Askeriye", "Festival Organizatörü"];
+                let keys = Object.keys(GameData.products).filter(k => g.unlocked[k]);
+                if(keys.length > 0) {
+                    let item = keys[Math.floor(Math.random() * keys.length)];
+                    let p = GameData.products[item];
+                    let qty = 20 + Math.floor(Math.random() * 80);
+                    if(item === 'car' || item === 'tv') qty = 2 + Math.floor(Math.random() * 5); 
+                    let reward = Math.floor(p.sell * qty * (1.2 + Math.random() * 0.5)); 
+                    let penalty = Math.floor(reward * 0.5);
+                    g.availableContracts.push({
+                        client: clients[Math.floor(Math.random() * clients.length)],
+                        item: item, qty: qty, reward: reward, penalty: penalty, days: 3 + Math.floor(Math.random()*4)
+                    });
+                    Engine.addLog(`🤝 Yeni B2B İhalesi teklifi geldi!`);
+                }
             }
         }
         
@@ -389,16 +509,21 @@ const Engine = {
         if (g.insurance) expenses += 50;
 
         // Tüketici / RP kazanımı
-        let rpGain = Math.floor(revenue * 0.10) + 15;
+        let rpGain = Math.floor(revenue / 20000) + Math.floor(soldTotal / 50) + 1;
         g.researchPoints = (g.researchPoints || 0) + rpGain;
-        Engine.addLog(`🧪 +${rpGain} RP Kazanıldı`);
+        if(rpGain > 0) Engine.addLog(`🧪 +${rpGain} RP Kazanıldı`);
 
         g.day++; 
         if (g.day > 7) { 
             g.day = 1; g.week++; 
             // HAFTALIK VERGİ (TAX)
-            let tax = Math.floor(g.money * 0.10);
+            let taxRate = 0.10;
+            if(g.relations && g.relations.minister >= 80) taxRate = 0; // Tax free
+            else if(g.relations && g.relations.minister < 30) taxRate = 0.20; // Double tax
+            
+            let tax = Math.floor(g.money * taxRate);
             if(tax > 0) { expenses += tax; Engine.addLog(`🏛️ Haftalık Kurumlar Vergisi: -${App.formatMoney(tax)}`); }
+            else if (g.relations && g.relations.minister >= 80) { Engine.addLog(`🏛️ Bakanlık ile aranız iyi olduğu için bu hafta VERGİ ÖDEMEDİNİZ!`); }
         } 
         if (g.week > 4) { g.week = 1; g.month++; }
         
@@ -415,20 +540,31 @@ const Engine = {
         else if ((g.staff.janitor||0) > 0 && g.popularity < Engine.getBasePop()+50) g.popularity += 1;
 
         if(!g.modifiers) g.modifiers = {buyMod:1};
-        g.modifiers.buyMod = 1;
+        let bMod = 1.0;
+        if(g.relations && g.relations.wholesaler >= 80) bMod = 0.8;
+        else if(g.relations && g.relations.wholesaler < 30) bMod = 1.3;
+        g.modifiers.buyMod = bMod;
         if (Math.random() < 0.45) {
             let r = Math.random();
             if (r < 0.15 && !g.rivalDefeated && (g.marketShare||0) > 20) { 
                 g.popularity -= 5; g.marketShare -= 2.0; Engine.addLog(`📉 Rakip agresif kampanya yaptı! Popülarite düştü.`); 
             }
             else if (r < 0.3) { 
-                if((g.staff.guard||0) === 0) { 
-                    let loss = Math.floor(g.money * 0.1) + 100; if(g.money<loss)loss=g.money; 
-                    Engine.spendMoney(loss); Engine.addLog(`🦹 Marketten Hırsızlık Yapıldı! Zarar: -${App.formatMoney(loss)}`); 
+                if (g.relations && g.relations.mafia >= 80 && !g.rivalDefeated) {
+                    g.marketShare += 2.0;
+                    Engine.addLog(`🕶️ Mafya rakibin nakliye aracını 'ikna etti'. Pazar payın arttı!`);
+                } else if (g.relations && g.relations.mafia < 30) {
+                    let loss = Math.floor(g.money * 0.15) + 500; if(g.money<loss)loss=g.money; 
+                    Engine.spendMoney(loss); Engine.addLog(`🕶️ Mafya haraç kesti! Zarar: -${App.formatMoney(loss)}`); 
                 } else {
-                    let fine = 500 * g.staff.guard;
-                    Engine.earnMoney(fine); revenue += fine;
-                    Engine.addLog(`👮 Güvenlik Görevlisi hırsızı suçüstü yakaladı! Tazminat: <span class="green">+${App.formatMoney(fine)}</span>`);
+                    if((g.staff.guard||0) === 0) { 
+                        let loss = Math.floor(g.money * 0.1) + 100; if(g.money<loss)loss=g.money; 
+                        Engine.spendMoney(loss); Engine.addLog(`🦹 Marketten Hırsızlık Yapıldı! Zarar: -${App.formatMoney(loss)}`); 
+                    } else {
+                        let fine = 500 * g.staff.guard;
+                        Engine.earnMoney(fine); revenue += fine;
+                        Engine.addLog(`👮 Güvenlik Görevlisi hırsızı suçüstü yakaladı! Tazminat: <span class="green">+${App.formatMoney(fine)}</span>`);
+                    }
                 }
             }
             else if (r < 0.45) { 
@@ -494,9 +630,12 @@ const Engine = {
         if((g.staff.cashier||0) > 2 && Math.random()>0.5) reviews.push("Kasa sırası hiç beklemedim, kasiyerler jet gibi. ⭐⭐⭐⭐");
         if(reviews.length === 0) reviews.push("Normal bir alışveriş deneyimiydi. Fena değil. ⭐⭐⭐");
         let randomReview = reviews[Math.floor(Math.random()*reviews.length)];
+        let dateStr = `Ay ${g.month} / Hft ${g.week} / Gn ${g.day}`;
+        if(!g.reviews) g.reviews = [];
+        g.reviews.unshift({ date: dateStr, text: randomReview });
+        if(g.reviews.length > 20) g.reviews.pop();
 
         if(!g.history) g.history = [];
-        let dateStr = `Ay ${g.month} / Hft ${g.week} / Gn ${g.day}`;
         // The current day string corresponds to the day that just ended (before incrementing if we use old, but we already incremented!)
         // Actually, we incremented day/week/month right above this. So the display will show tomorrow's date!
         // To fix this logically, the history should record the "just passed" day. Since we already incremented `g.day` above, we use the string before it!

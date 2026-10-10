@@ -21,7 +21,17 @@ const StateManager = {
                 q2: { title: 'Borsa Kurdu', desc: '10 Lot Altın al.', reqGold: 10, rp: 15, done: false, claimed: false },
                 q3: { title: 'Lojistik', desc: 'İlk Kamyonunu satın al.', reqTruck: true, rp: 20, done: false, claimed: false },
                 q4: { title: 'Büyüme', desc: 'Süpermarket statüsüne geç.', reqBuild: 2, rp: 30, done: false, claimed: false },
-                q5: { title: 'Lüks', desc: 'Spor Araba sat.', reqCar: true, rp: 50, done: false, claimed: false }
+                q5: { title: 'Lüks', desc: 'Spor Araba sat.', reqCar: true, rp: 50, done: false, claimed: false },
+                q6: { title: 'İşveren', desc: '5 Kasiyer işe al.', reqCashier: 5, rp: 25, done: false, claimed: false },
+                q7: { title: 'Popüler', desc: '150 Popülariteye ulaş.', reqPop: 150, rp: 35, done: false, claimed: false },
+                q8: { title: 'Teknoloji', desc: 'Laptop reyonunu aç.', reqLaptop: true, rp: 40, done: false, claimed: false },
+                q9: { title: 'Holding', desc: '$100,000 kazanca ulaş.', reqMoney2: 100000, rp: 100, done: false, claimed: false },
+                q10: { title: 'Nakliyat Kralı', desc: 'Kargo Uçağı satın al.', reqPlane: true, rp: 200, done: false, claimed: false },
+                q11: { title: 'Güvenlik Ağı', desc: '3 Güvenlik Görevlisi işe al.', reqGuard: 3, rp: 30, done: false, claimed: false },
+                q12: { title: 'Sağlık Sektörü', desc: 'Şirket İtibarını (REP) 50 yap.', reqRep: 50, rp: 45, done: false, claimed: false },
+                q13: { title: 'Mafya Dostu', desc: 'Mafya ilişkisini 80 yap.', reqMafia: 80, rp: 60, done: false, claimed: false },
+                q14: { title: 'Milyoner', desc: '$1,000,000 kazanca ulaş.', reqMoney3: 1000000, rp: 150, done: false, claimed: false },
+                q15: { title: 'Tekel', desc: 'Rakibini satın al.', reqRivalDefeated: true, rp: 500, done: false, claimed: false }
             },
             skills: {
                 negotiator: { name: 'Pazarlık Ustası', desc: 'Alış fiyatları kalıcı olarak %10 ucuzlar.', cost: 15, unlocked: false },
@@ -32,7 +42,11 @@ const StateManager = {
             factory: { owned: false, level: 1, activeItem: null },
             contracts: [],
             availableContracts: [],
-            corporateRep: 0
+            corporateRep: 0,
+            tutorialDone: false,
+            relations: { wholesaler: 50, minister: 50, mafia: 10 },
+            incomingCargo: [],
+            reviews: []
         };
     },
     
