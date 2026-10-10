@@ -1,4 +1,4 @@
-﻿const Engine = {
+const Engine = {
     getTotalTransportCap: () => {
         let cap = 50;
         if(App.state.g.skills && App.state.g.skills.logistics && App.state.g.skills.logistics.unlocked) cap = 75;
