@@ -64,12 +64,6 @@ const UI = {
                         <div class="mc-arrow">▶</div>
                     </div>
 
-                    <div class="manage-card" onclick="UI.openPanel('relations')">
-                        <div class="mc-icon" style="background:linear-gradient(135deg, #2c3e50, #34495e);">🤝</div>
-                        <div class="mc-content"><div class="mc-title">Diplomasi & İlişkiler</div><div class="mc-desc">Belediye, mafya ve toptancılarla ilişkilerini yönet</div></div>
-                        <div class="mc-arrow">▶</div>
-                    </div>
-
                     <div class="page-header mt-2">Sistem Seçenekleri</div>
                     <div class="manage-card" onclick="UI.openPanel('roadmap')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #f39c12, #e67e22);">🗺️</div>
@@ -107,7 +101,6 @@ const UI = {
         <div class="floating-panel" id="panel-roadmap"><div class="panel-header"><span class="panel-title">🗺️ Yol Haritası</span><button class="btn-close" onclick="UI.closePanel('roadmap')">X</button></div><div class="panel-body" id="roadmap-view"></div></div>
         <div class="floating-panel" id="panel-calendar"><div class="panel-header"><span class="panel-title">📅 Şirket Günlüğü</span><button class="btn-close" onclick="UI.closePanel('calendar')">X</button></div><div class="panel-body" id="calendar-view"></div></div>
         <div class="floating-panel" id="panel-law"><div class="panel-header"><span class="panel-title">🧑‍⚖️ Hukuk Departmanı</span><button class="btn-close" onclick="UI.closePanel('law')">X</button></div><div class="panel-body" id="law-view"></div></div>
-        <div class="floating-panel" id="panel-relations"><div class="panel-header"><span class="panel-title">🤝 Diplomasi & İlişkiler</span><button class="btn-close" onclick="UI.closePanel('relations')">X</button></div><div class="panel-body" id="relations-view"></div></div>
 
         <div class="fab-container"><button onclick="Engine.endDay()" class="btn btn-primary btn-massive">${t('endDay')}</button></div>
     `,
@@ -254,7 +247,7 @@ const UI = {
             else tBar.style.display = 'none';
 
             UI.renderShopTab(); UI.renderInvTab(); UI.renderStaffTab(); UI.renderB2BTab();
-            UI.renderFinancePanel(); UI.renderRDPanel(); UI.renderUpgradesPanel(); UI.renderFactoryPanel(); UI.renderSettingsPanel(); UI.renderRoadmapPanel(); UI.renderCalendarPanel(); UI.renderLawPanel(); UI.renderRelationsPanel();
+            UI.renderFinancePanel(); UI.renderRDPanel(); UI.renderUpgradesPanel(); UI.renderFactoryPanel(); UI.renderSettingsPanel(); UI.renderRoadmapPanel(); UI.renderCalendarPanel(); UI.renderLawPanel();
         } catch(e) { console.error("UI Update Hata:", e); }
     },
 
@@ -417,49 +410,6 @@ const UI = {
             for(let k in g.quests) { let q = g.quests[k]; if(!q.claimed) h += `<div class="item-row quest"><div class="item-info"><span class="item-title">${q.title}</span><span class="item-sub">${q.desc}</span></div><div class="item-action"><button class="btn" onclick="Engine.claimQuest('${k}')" ${!q.done ? 'disabled' : ''} style="${q.done ? 'background:var(--success);' : ''}">${q.done ? 'Ödülü Al' : 'Bekliyor'}</button></div></div>`; }
         }
         document.getElementById('rd-view').innerHTML = h;
-    },
-
-    renderRelationsPanel: () => {
-        let g = App.state.g; let h = '';
-        if(!g.relations) g.relations = { mayor: 0, mafia: 0, suppliers: 0 };
-        
-        // Helper function for progress bar
-        const getRelColor = (val) => val < 30 ? 'var(--danger)' : (val < 70 ? 'var(--warning)' : 'var(--success)');
-        const renderRelCard = (title, icon, key, desc, bonusText, cost, costLabel) => {
-            let val = g.relations[key];
-            return `<div class="panel mb-2">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <div style="font-weight:bold; font-size:1.1rem;">${icon} ${title}</div>
-                    <div style="font-weight:bold; color:${getRelColor(val)};">${val}/100</div>
-                </div>
-                <div style="font-size:0.85rem; color:var(--text-dark); margin-bottom:10px;">${desc}</div>
-                
-                <div style="background:#eee; height:8px; border-radius:4px; overflow:hidden; margin-bottom:10px;">
-                    <div style="width:${val}%; background:${getRelColor(val)}; height:100%; transition:width 0.3s;"></div>
-                </div>
-                
-                <div style="font-size:0.85rem; background:rgba(0,0,0,0.05); padding:6px; border-radius:4px; margin-bottom:10px;">
-                    <b>Mevcut Etki:</b> ${bonusText}
-                </div>
-                
-                <button class="btn btn-outline" style="width:100%;" onclick="Engine.improveRelation('${key}', ${cost})">${costLabel} (${App.formatMoney(cost)})</button>
-            </div>`;
-        };
-
-        h += `<div class="panel text-center mb-2" style="background:linear-gradient(135deg, #2c3e50, #34495e); color:white;">
-            <div style="font-size:1.3rem; font-weight:bold;">🤝 Şehir Diplomasisi</div>
-            <div style="font-size:0.85rem; opacity:0.8;">Para sadece ürün almak için değildir... Güç satın al!</div>
-        </div>`;
-
-        let mayorBonus = `Haftalık Vergi: %${(10 - Math.floor((g.relations.mayor/100)*8)).toFixed(1)}`; // From 10% to 2%
-        let mafiaBonus = g.relations.mafia >= 80 ? "Hırsızlık Yok. +Rakip Kundaklama!" : (g.relations.mafia >= 50 ? "Hırsızlık Yok." : "Tehlikede! Hırsızlık Riski Var.");
-        let supplierBonus = `Toptancı İndirimi: %${Math.floor((g.relations.suppliers/100)*20)}`; // From 0% to 20%
-
-        h += renderRelCard('Şehir Belediyesi', '🏛️', 'mayor', 'Belediye ile aran iyi olursa haftalık kurumlar vergisi oranını ciddi oranda düşürebilirsin.', mayorBonus, 5000, 'Bağış Yap');
-        h += renderRelCard('Yerel Mafya', '🕴️', 'mafia', 'Mafya ile dost olursan kimse dükkanından mal çalamaz. Hatta belki rakiplerinin canını yakarlar...', mafiaBonus, 10000, 'Haraç Öde');
-        h += renderRelCard('Toptancılar Birliği', '🚚', 'suppliers', 'Toptancılarla aran iyi oldukça tüm mal alış maliyetlerin kalıcı olarak düşer.', supplierBonus, 3000, 'Lüks Akşam Yemeği');
-
-        document.getElementById('relations-view').innerHTML = h;
     },
 
     renderLawPanel: () => {
