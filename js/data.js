@@ -9,8 +9,8 @@ const GameData = {
         laptop: { name: 'Laptop', type: 'Elektronik', category: 'tech', buy: 600, sell: 1500, unlock: 25000, space: 5, demand: 3, reqBuild: 1, cargoDays: 3 },
         tv: { name: 'Plazma TV', type: 'Elektronik', category: 'tech', buy: 1500, sell: 3500, unlock: 75000, space: 10, demand: 2, reqBuild: 2, cargoDays: 4 },
         car: { name: 'Spor Araba', type: 'Lüks', category: 'luxury', buy: 35000, sell: 80000, unlock: 500000, space: 50, demand: 1, reqBuild: 3, cargoDays: 7 },
-        pharmacy: { name: 'Vitamin & İlaç', type: 'Eczane', category: 'health', buy: 100, sell: 250, unlock: 35000, space: 1, demand: 15, reqBuild: 2, reqQuest: 'q11', cargoDays: 2 },
-        cosmetics: { name: 'Kozmetik', type: 'Kozmetik', category: 'health', buy: 50, sell: 150, unlock: 18000, space: 1, demand: 12, reqBuild: 1, reqQuest: 'q12', cargoDays: 2 },
+        pharmacy: { name: 'Vitamin & İlaç', type: 'Eczane', category: 'health', buy: 100, sell: 250, unlock: 35000, space: 1, demand: 15, reqBuild: 2, reqQuest: 'q12', cargoDays: 2 },
+        cosmetics: { name: 'Kozmetik', type: 'Kozmetik', category: 'health', buy: 50, sell: 150, unlock: 18000, space: 1, demand: 12, reqBuild: 1, reqQuest: 'q7', cargoDays: 2 },
         toys: { name: 'Oyuncak', type: 'Oyuncak', category: 'toys', buy: 20, sell: 60, unlock: 8000, space: 2, demand: 18, reqBuild: 1, cargoDays: 2 },
         furniture: { name: 'Mobilya', type: 'Ev', category: 'home', buy: 800, sell: 2000, unlock: 120000, space: 15, demand: 2, reqBuild: 2, cargoDays: 5 }
     },

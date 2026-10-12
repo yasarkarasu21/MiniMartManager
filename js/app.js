@@ -63,7 +63,18 @@ const App = {
     },
 
     setTheme: (th) => { App.state.theme = th; localStorage.setItem('mm_theme', th); document.body.className = th; if(UI.currentTab) UI.update(); else App.navigate('settings'); },
-    setLang: (ln) => { App.state.lang = ln; localStorage.setItem('mm_lang', ln); if(UI.currentTab) UI.update(); else App.navigate('settings'); },
+    setLang: (ln) => { 
+        App.state.lang = ln; 
+        localStorage.setItem('mm_lang', ln); 
+        if(App.state.g && UI.currentTab) {
+            let activeTab = UI.currentTab;
+            App.navigate('game');
+            UI.switchTab(activeTab);
+            UI.openPanel('settings');
+        } else {
+            App.navigate('settings');
+        }
+    },
     setVolume: (v) => { 
         App.state.volume = parseFloat(v); 
         localStorage.setItem('mm_vol', v); 

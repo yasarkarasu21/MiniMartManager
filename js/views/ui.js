@@ -665,6 +665,14 @@ const UI = {
         if (GameData.buildings[nextLevel]) { let b = GameData.buildings[nextLevel]; h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">${b.name} Binasına Geç</span><span class="item-sub">Maliyet: ${App.formatMoney(b.cost)}</span></div><div class="item-action"><button class="btn btn-primary" onclick="Engine.upgradeBuilding()">Geliştir</button></div></div>`; } 
         else { h += `<div class="panel text-center mb-2" style="font-size:1.1rem; color:var(--success);"><strong>En lüks binadasın!</strong></div>`; }
         
+        h += '<div class="page-header mt-2" style="font-size:1.2rem;">📦 Depo Kapasitesi Genişletmeleri</div>';
+        if (!g.upgrades) g.upgrades = {};
+        for (let k in GameData.upgrades) {
+            let u = GameData.upgrades[k];
+            let isBought = !!g.upgrades[k];
+            h += `<div class="item-row"><div class="item-info"><span class="item-title">${u.name}</span><span class="item-sub">Kapasite: +${u.cap} br</span></div><div class="item-action">${isBought ? '<button class="btn btn-green" disabled>Alındı ✅</button>' : `<button class="btn btn-warning" onclick="Engine.buyStorage('${k}')">Satın Al (${App.formatMoney(u.cost)})</button>`}</div></div>`;
+        }
+
         h += '<div class="page-header mt-2" style="font-size:1.2rem;">🚚 Lojistik Filosu</div>';
         for (let k in g.fleet) { let f = g.fleet[k]; h += `<div class="item-row"><div class="item-info"><span class="item-title">${f.name} (${f.count} Adet)</span><span class="item-sub">Kapasite: +${f.capacity}</span></div><div class="item-action"><button class="btn btn-green" onclick="Engine.buyVehicle('${k}')">Satın Al (${App.formatMoney(f.cost)})</button></div></div>`; }
         

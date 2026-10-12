@@ -33,9 +33,10 @@ const Engine = {
         }
         
         let step = 1;
-        if (currentPrice >= 100) step = 10;
-        if (currentPrice >= 1000) step = 100;
-        if (currentPrice >= 10000) step = 1000;
+        let testVal = (delta > 0) ? currentPrice : (currentPrice - 1);
+        if (testVal >= 10000) step = 1000;
+        else if (testVal >= 1000) step = 100;
+        else if (testVal >= 100) step = 10;
         
         let newPrice = currentPrice + (delta * step);
         let minBuy = Engine.getProductBuyPrice(id);
@@ -58,10 +59,12 @@ const Engine = {
             Engine.spendMoney(cost);
             g.currentTransportUsed += trReq;
             g.currentStorage += (p.space * qty);
+            if(g.inventory[id] === undefined || isNaN(g.inventory[id])) g.inventory[id] = 0;
             
             if(!g.incomingCargo) g.incomingCargo = [];
             let baseDays = p.cargoDays || 2;
-            let daysToArrive = (g.staff && g.staff.warehouse) ? Math.max(1, baseDays - g.staff.warehouse) : baseDays;
+            let whStaff = (g.staff && g.staff.warehouse && !isNaN(g.staff.warehouse)) ? g.staff.warehouse : 0;
+            let daysToArrive = Math.max(1, baseDays - whStaff);
             g.incomingCargo.push({ id: id, qty: qty, daysLeft: daysToArrive, space: p.space * qty });
             
             AudioSys.buy(); App.showNotify(`${qty}x ${p.name} siparişi verildi! (${daysToArrive} gün)`); UI.update(); 
@@ -73,7 +76,7 @@ const Engine = {
         if (g.inventory[id] >= qty) {
             let earn = Math.floor(Engine.getProductBuyPrice(id) * 0.5) * qty;
             g.inventory[id] -= qty;
-            g.currentStorage -= (p.space * qty);
+            g.currentStorage = Math.max(0, g.currentStorage - (p.space * qty));
             Engine.earnMoney(earn);
             AudioSys.cash(); App.showNotify(`${qty}x ${p.name} toptancıya iade edildi!`); UI.update();
         } else { AudioSys.error(); App.showNotify("Depoda o kadar ürün yok!"); }
@@ -86,7 +89,9 @@ const Engine = {
 
         if (g.currentTransportUsed + trReq > trMax) { AudioSys.error(); App.showNotify("Nakliye kapasiten yetmiyor!"); return; }
         if (g.money >= cost && g.currentStorage + (p.space * qty) <= actStore) {
-            Engine.spendMoney(cost); g.inventory[g.blackMarketItem] += qty; g.currentStorage += (p.space * qty); g.currentTransportUsed += trReq;
+            Engine.spendMoney(cost); 
+            if(g.inventory[g.blackMarketItem] === undefined || isNaN(g.inventory[g.blackMarketItem])) g.inventory[g.blackMarketItem] = 0;
+            g.inventory[g.blackMarketItem] += qty; g.currentStorage += (p.space * qty); g.currentTransportUsed += trReq;
             if(Math.random() < 0.25) {
                 AudioSys.police();
                 App.showModal("🚨 POLİS BASKINI!", "Kaçak mal alırken yakalandın! Depondaki TÜM mallara el konuldu ve ceza yedin.");
@@ -97,9 +102,26 @@ const Engine = {
     },
     
     unlockDept: (id) => { let g = App.state.g; if (g.money >= GameData.products[id].unlock) { Engine.spendMoney(GameData.products[id].unlock); g.unlocked[id] = true; AudioSys.success(); App.showNotify("Reyon açıldı!"); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
-    hireStaff: (id) => { let g = App.state.g; if (g.money >= GameData.staffTypes[id].cost) { Engine.spendMoney(GameData.staffTypes[id].cost); g.staff[id]++; AudioSys.buy(); App.showNotify("İşe alındı!"); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
+    hireStaff: (id) => { 
+        let g = App.state.g; 
+        if(!g.staff) g.staff = { cashier: 0, guard: 0, janitor: 0, warehouse: 0, manager: 0 };
+        if(g.staff[id] === undefined || isNaN(g.staff[id])) g.staff[id] = 0;
+        if (g.money >= GameData.staffTypes[id].cost) { Engine.spendMoney(GameData.staffTypes[id].cost); g.staff[id]++; AudioSys.buy(); App.showNotify("İşe alındı!"); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } 
+    },
     startCampaign: (id) => { let g = App.state.g; if (g.money >= GameData.marketing[id].cost) { Engine.spendMoney(GameData.marketing[id].cost); g.marketingBoost = GameData.marketing[id].pop; g.marketingDaysLeft = GameData.marketing[id].days; AudioSys.success(); App.showNotify("Kampanya Başladı!"); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
-    buyStorage: (id) => { let g = App.state.g; if (g.money >= GameData.upgrades[id].cost) { Engine.spendMoney(GameData.upgrades[id].cost); GameData.upgrades[id].bought = true; g.storageCapacity += GameData.upgrades[id].cap; AudioSys.success(); App.showNotify("Lojistik gelişti!"); UI.update(); } else { AudioSys.error(); } },
+    buyStorage: (id) => { 
+        let g = App.state.g; 
+        if(!g.upgrades) g.upgrades = {};
+        if(g.upgrades[id]) { AudioSys.error(); App.showNotify("Bu geliştirme zaten alındı!"); return; }
+        if (g.money >= GameData.upgrades[id].cost) { 
+            Engine.spendMoney(GameData.upgrades[id].cost); 
+            g.upgrades[id] = true; 
+            g.storageCapacity += GameData.upgrades[id].cap; 
+            AudioSys.success(); 
+            App.showNotify("Depo kapasitesi artırıldı!"); 
+            UI.update(); 
+        } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } 
+    },
     buyVehicle: (id) => { let g = App.state.g; if(g.money >= g.fleet[id].cost) { Engine.spendMoney(g.fleet[id].cost); g.fleet[id].count++; AudioSys.buy(); App.showNotify(`${g.fleet[id].name} alındı!`); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
     
     upgradeBuilding: () => {
@@ -306,6 +328,7 @@ const Engine = {
     endDay: () => {
         AudioSys.endDay();
         let g = App.state.g;
+        let dayPassedDateStr = `Ay ${g.month} / Hft ${g.week} / Gn ${g.day}`;
         g.logs = []; let revenue = 0, soldTotal = 0; g.currentTransportUsed = 0;
         
         if(g.trendDaysLeft > 0) { g.trendDaysLeft--; if(g.trendDaysLeft === 0) g.trendActive = null; } 
@@ -369,7 +392,7 @@ const Engine = {
                     let item = keys[Math.floor(Math.random() * keys.length)];
                     let p = GameData.products[item];
                     let qty = 20 + Math.floor(Math.random() * 80);
-                    if(item === 'car' || item === 'tv') qty = 2 + Math.floor(Math.random() * 5); 
+                    if(item === 'car' || item === 'tv' || item === 'furniture') qty = 2 + Math.floor(Math.random() * 5); 
                     let reward = Math.floor(p.sell * qty * (1.2 + Math.random() * 0.5)); 
                     let penalty = Math.floor(reward * 0.5);
                     g.availableContracts.push({
@@ -396,7 +419,13 @@ const Engine = {
         g.contracts = newContracts;
 
         let cheapCount = 0; let expCount = 0;
-        for(let k in g.pricing) { if(g.pricing[k] === 'cheap') cheapCount++; if(g.pricing[k] === 'expensive') expCount++; }
+        for(let k in GameData.products) {
+            if(!g.unlocked[k]) continue;
+            let p = GameData.products[k];
+            let sp = (g.customPrice && g.customPrice[k] !== undefined) ? g.customPrice[k] : p.sell;
+            if(sp <= Math.floor(p.sell * 0.8)) cheapCount++;
+            else if(sp >= Math.floor(p.sell * 1.25)) expCount++;
+        }
         
         if(!g.rivalDefeated) {
             let shareGrowth = (g.popularity - 50) / 200;
@@ -463,10 +492,11 @@ const Engine = {
         }
         for (let i = g.activeLoans.length - 1; i >= 0; i--) {
             let l = g.activeLoans[i];
-            expenses += l.dailyPayment;
-            l.total -= l.dailyPayment;
+            let payAmt = Math.min(l.dailyPayment, l.total);
+            expenses += payAmt;
+            l.total -= payAmt;
             l.daysLeft--;
-            Engine.addLog(`💳 ${l.type} Taksiti: -${App.formatMoney(l.dailyPayment)} (${l.daysLeft} gün kaldı)`);
+            Engine.addLog(`💳 ${l.type} Taksiti: -${App.formatMoney(payAmt)} (${Math.max(0, l.daysLeft)} gün kaldı)`);
             if (l.daysLeft <= 0 || l.total <= 0) {
                 Engine.addLog(`🎉 ${l.type} başarıyla kapatıldı!`);
                 g.activeLoans.splice(i, 1);
@@ -555,11 +585,11 @@ const Engine = {
                     Engine.addLog(`🕶️ Mafya rakibin nakliye aracını 'ikna etti'. Pazar payın arttı!`);
                 } else if (g.relations && g.relations.mafia < 30) {
                     let loss = Math.floor(g.money * 0.15) + 500; if(g.money<loss)loss=g.money; 
-                    Engine.spendMoney(loss); Engine.addLog(`🕶️ Mafya haraç kesti! Zarar: -${App.formatMoney(loss)}`); 
+                    Engine.spendMoney(loss); expenses += loss; Engine.addLog(`🕶️ Mafya haraç kesti! Zarar: -${App.formatMoney(loss)}`); 
                 } else {
                     if((g.staff.guard||0) === 0) { 
                         let loss = Math.floor(g.money * 0.1) + 100; if(g.money<loss)loss=g.money; 
-                        Engine.spendMoney(loss); Engine.addLog(`🦹 Marketten Hırsızlık Yapıldı! Zarar: -${App.formatMoney(loss)}`); 
+                        Engine.spendMoney(loss); expenses += loss; Engine.addLog(`🦹 Marketten Hırsızlık Yapıldı! Zarar: -${App.formatMoney(loss)}`); 
                     } else {
                         let fine = 500 * g.staff.guard;
                         Engine.earnMoney(fine); revenue += fine;
@@ -575,20 +605,20 @@ const Engine = {
             }
             else if (r < 0.7) {
                 // LAWSUIT GENERATION
-                if ((g.staff.janitor||0) > 0) {
-                    Engine.addLog(`🧹 Temizlikçi yerdeki sıvı yağ döküntüsünü hemen temizleyerek olası bir davayı önledi!`);
+                let accidents = [
+                    { type: "Müşteri Reyonda Kayıp Düştü", baseCost: 15000, preventable: true },
+                    { type: "Bozuk Ürün Zehirlenmesi", baseCost: 35000, preventable: false },
+                    { type: "Personel Hakareti Davası", baseCost: 8000, preventable: false },
+                    { type: "Hatalı Ürün Patlaması", baseCost: 25000, preventable: false }
+                ];
+                let acc = accidents[Math.floor(Math.random() * accidents.length)];
+                if (acc.preventable && (g.staff.janitor||0) > 0) {
+                    Engine.addLog(`🧹 Temizlikçi yerdeki sıvı döküntüsünü hemen temizleyerek olası bir düşme davasını önledi!`);
                 } else {
-                    let accidents = [
-                        { type: "Müşteri Reyonda Kayıp Düştü", baseCost: 15000 },
-                        { type: "Bozuk Ürün Zehirlenmesi", baseCost: 35000 },
-                        { type: "Personel Hakareti Davası", baseCost: 8000 },
-                        { type: "Hatalı Ürün Patlaması", baseCost: 25000 }
-                    ];
-                    let acc = accidents[Math.floor(Math.random() * accidents.length)];
                     let courtDays = Math.floor(Math.random() * 3) + 3; // 3 to 5 days
                     g.lawsuits.push({ type: acc.type, cost: acc.baseCost, daysLeft: courtDays });
                     Engine.addLog(`🚨 <b>DAVA AÇILDI!</b> Sebep: "${acc.type}". Talep: ${App.formatMoney(acc.baseCost)}. Duruşmaya: ${courtDays} gün.`);
-                    setTimeout(() => App.showNotify("ŞİRKETE DAVA AÇILDI!"), 1000);
+                    setTimeout(() => App.showNotify("ŞİRKETE DAVA AÇILDI!", 'error'), 1000);
                 }
             }
         }
@@ -630,18 +660,13 @@ const Engine = {
         if((g.staff.cashier||0) > 2 && Math.random()>0.5) reviews.push("Kasa sırası hiç beklemedim, kasiyerler jet gibi. ⭐⭐⭐⭐");
         if(reviews.length === 0) reviews.push("Normal bir alışveriş deneyimiydi. Fena değil. ⭐⭐⭐");
         let randomReview = reviews[Math.floor(Math.random()*reviews.length)];
-        let dateStr = `Ay ${g.month} / Hft ${g.week} / Gn ${g.day}`;
         if(!g.reviews) g.reviews = [];
-        g.reviews.unshift({ date: dateStr, text: randomReview });
+        g.reviews.unshift({ date: dayPassedDateStr, text: randomReview });
         if(g.reviews.length > 20) g.reviews.pop();
 
         if(!g.history) g.history = [];
-        // The current day string corresponds to the day that just ended (before incrementing if we use old, but we already incremented!)
-        // Actually, we incremented day/week/month right above this. So the display will show tomorrow's date!
-        // To fix this logically, the history should record the "just passed" day. Since we already incremented `g.day` above, we use the string before it!
-        // Wait, we can just save it now.
         g.history.unshift({
-            date: dateStr,
+            date: dayPassedDateStr,
             revenue: revenue,
             expenses: expenses,
             logs: [...g.logs]

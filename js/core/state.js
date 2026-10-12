@@ -1,5 +1,23 @@
 const StateManager = {
     getInitialGameState: function() {
+        let initialInventory = {};
+        let initialUnlocked = {};
+        let initialPricing = {};
+        let initialCustomPrice = {};
+        
+        let productKeys = (typeof GameData !== 'undefined' && GameData.products) 
+            ? Object.keys(GameData.products) 
+            : ['apple', 'bread', 'milk', 'tshirt', 'shoes', 'phone', 'laptop', 'tv', 'car', 'pharmacy', 'cosmetics', 'toys', 'furniture'];
+
+        productKeys.forEach(k => {
+            initialInventory[k] = 0;
+            initialUnlocked[k] = (k === 'apple');
+            initialPricing[k] = 'normal';
+            if (typeof GameData !== 'undefined' && GameData.products && GameData.products[k]) {
+                initialCustomPrice[k] = GameData.products[k].sell;
+            }
+        });
+
         return {
             day: 1, week: 1, month: 1, money: 1000, popularity: 50, storageCapacity: 200, currentStorage: 0,
             loan: 0, deposits: 0, insurance: false, researchPoints: 0, franchisePoints: 0, prestigeCount: 0,
@@ -9,11 +27,13 @@ const StateManager = {
                 truck: { count: 0, capacity: 1000, cost: 15000, name: "Kamyon" },
                 plane: { count: 0, capacity: 10000, cost: 150000, name: "Kargo Uçağı" }
             },
-            inventory: { apple: 0, bread: 0, milk: 0, tshirt: 0, shoes: 0, phone: 0, laptop: 0, tv: 0, car: 0 },
-            unlocked: { apple: true, bread: false, milk: false, tshirt: false, shoes: false, phone: false, laptop: false, tv: false, car: false },
-            pricing: { apple: 'normal', bread: 'normal', milk: 'normal', tshirt: 'normal', shoes: 'normal', phone: 'normal', laptop: 'normal', tv: 'normal', car: 'normal' },
-            staff: { cashier: 0, guard: 0, janitor: 0, manager: 0 },
+            inventory: initialInventory,
+            unlocked: initialUnlocked,
+            pricing: initialPricing,
+            customPrice: initialCustomPrice,
+            staff: { cashier: 0, guard: 0, janitor: 0, warehouse: 0, manager: 0 },
             stocks: { megatech: { shares: 0, price: 150, oldPrice: 150 }, foodco: { shares: 0, price: 60, oldPrice: 60 }, gold: { shares: 0, price: 500, oldPrice: 500 }, doge: { shares: 0, price: 10, oldPrice: 10 } },
+            upgrades: { storage2: false, storage3: false, storage4: false },
             marketingBoost: 0, marketingDaysLeft: 0, modifiers: { buyMod: 1 }, stats: { earned: 0, spent: 0 }, logs: [],
             trendActive: null, trendDaysLeft: 0, blackMarketActive: false, blackMarketItem: null,
             quests: {
@@ -46,7 +66,11 @@ const StateManager = {
             tutorialDone: false,
             relations: { wholesaler: 50, minister: 50, mafia: 10 },
             incomingCargo: [],
-            reviews: []
+            reviews: [],
+            activeLoans: [],
+            lawsuits: [],
+            lawyerLevel: 0,
+            history: []
         };
     },
     
@@ -54,17 +78,42 @@ const StateManager = {
         let defaultState = this.getInitialGameState();
         if (!savedState) return defaultState;
         
-        // Deep merge for safe backward compatibility
-        let merged = { ...defaultState };
+        // Deep merge that preserves all saved keys while backfilling missing defaults
+        let merged = { ...defaultState, ...savedState };
         for(let key in defaultState) {
-            if (savedState[key] !== undefined) {
-                if (typeof defaultState[key] === 'object' && defaultState[key] !== null && !Array.isArray(defaultState[key])) {
-                    merged[key] = { ...defaultState[key], ...savedState[key] };
+            if (typeof defaultState[key] === 'object' && defaultState[key] !== null) {
+                if (Array.isArray(defaultState[key])) {
+                    merged[key] = Array.isArray(savedState[key]) ? savedState[key] : [...defaultState[key]];
                 } else {
-                    merged[key] = savedState[key];
+                    merged[key] = { ...defaultState[key], ...(savedState[key] || {}) };
                 }
             }
         }
+
+        // Clean any undefined or NaN product values in inventory, unlocked, pricing
+        if (typeof GameData !== 'undefined' && GameData.products) {
+            for (let p in GameData.products) {
+                if (merged.inventory[p] === undefined || isNaN(merged.inventory[p])) merged.inventory[p] = 0;
+                if (merged.unlocked[p] === undefined) merged.unlocked[p] = (p === 'apple');
+                if (merged.pricing[p] === undefined) merged.pricing[p] = 'normal';
+                if (!merged.customPrice) merged.customPrice = {};
+                if (merged.customPrice[p] === undefined) merged.customPrice[p] = GameData.products[p].sell;
+            }
+        }
+        if (merged.staff) {
+            for (let s of ['cashier', 'guard', 'janitor', 'warehouse', 'manager']) {
+                if (merged.staff[s] === undefined || isNaN(merged.staff[s])) merged.staff[s] = 0;
+            }
+        }
+        if (!merged.upgrades) merged.upgrades = { storage2: false, storage3: false, storage4: false };
+        if (!merged.activeLoans) merged.activeLoans = [];
+        if (!merged.lawsuits) merged.lawsuits = [];
+        if (merged.lawyerLevel === undefined) merged.lawyerLevel = 0;
+        if (!merged.history) merged.history = [];
+        if (!merged.incomingCargo) merged.incomingCargo = [];
+        if (!merged.reviews) merged.reviews = [];
+        if (!merged.relations) merged.relations = { wholesaler: 50, minister: 50, mafia: 10 };
+
         return merged;
     },
 
