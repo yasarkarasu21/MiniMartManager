@@ -1,0 +1,53 @@
+{
+  "news": [
+    {
+      "id": "crisis",
+      "title": "Dünya Ekonomik Krizi",
+      "desc": "Küresel tedarik zinciri aksadı, toptan alım fiyatları fırladı!",
+      "type": "negative",
+      "effects": { "buyMod": 1.3, "popChange": -5, "moneyChange": 0 }
+    },
+    {
+      "id": "stimulus",
+      "title": "Hükümetten KOBİ Teşvik Paketi",
+      "desc": "Yerel esnafa devletten karşılıksız hibe desteği sağlandı!",
+      "type": "positive",
+      "effects": { "buyMod": 1.0, "popChange": 0, "moneyChange": 5000 }
+    },
+    {
+      "id": "festival",
+      "title": "Şehirde Alışveriş Festivali",
+      "desc": "Şehre binlerce turist akın etti, perakende satış patlaması bekleniyor!",
+      "type": "positive",
+      "effects": { "buyMod": 1.0, "popChange": 25, "moneyChange": 0 }
+    },
+    {
+      "id": "strike",
+      "title": "Liman İşçileri Grevi",
+      "desc": "Gümrük kapılarında kargo operasyonları durma noktasına geldi.",
+      "type": "negative",
+      "effects": { "buyMod": 1.15, "popChange": -5, "moneyChange": 0 }
+    },
+    {
+      "id": "tax_refund",
+      "title": "Sürpriz Vergi İadesi",
+      "desc": "Maliye Bakanlığı fazla tahsil edilen vergileri kasalara iade etti!",
+      "type": "positive",
+      "effects": { "buyMod": 1.0, "popChange": 0, "taxRefundPercent": 0.05 }
+    },
+    {
+      "id": "rival_scandal",
+      "title": "Rakip Markada Hijyen Skandalı",
+      "desc": "HyperMart'ta tarihi geçmiş ürün skandalı patlak verdi. Müşteriler sana yöneliyor!",
+      "type": "positive",
+      "effects": { "buyMod": 1.0, "popChange": 15, "marketShareChange": 3.0 }
+    },
+    {
+      "id": "heatwave",
+      "title": "Aşırı Sıcak Hava Dalgası",
+      "desc": "Vatandaşlar serinlemek için marketlere hücum ediyor. Soğuk içecek talebi patladı!",
+      "type": "neutral",
+      "effects": { "buyMod": 1.0, "popChange": 10, "moneyChange": 0 }
+    }
+  ]
+}

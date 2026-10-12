@@ -1,0 +1,55 @@
+{
+  "institutions": {
+    "wholesaler": {
+      "id": "wholesaler",
+      "name": "Toptancılar Birliği",
+      "icon": "📦",
+      "desc": "Tedarik zincirinin kalbi. İlişki yüksekse malları %30'a varan indirimle alırsın. Düşükse fiyatlar zamlanır.",
+      "defaultVal": 50,
+      "weeklyDecay": 2,
+      "minigame": {
+        "title": "🤝 Toptancıyla Pazarlık Masası",
+        "desc": "Toptancılar Birliği başkanıyla ofisinde bir araya geldin. Hangi yaklaşımı seçeceksin?",
+        "options": [
+          { "id": "tea", "name": "☕ Çay Ismarla & Samimi Ol", "desc": "Güvenli ve risksiz yaklaşım.", "successRate": 0.75, "successBonus": 10, "failPenalty": 0, "successMsg": "Sıcak bir sohbet geçti, toptancı sana güvendi! (+10 İlişki)", "failMsg": "Toptancı meşguldü, pek vakit ayıramadı." },
+          { "id": "bulk", "name": "📑 Büyük Sevkiyat Sözü Ver", "desc": "Dengeli risk.", "successRate": 0.50, "successBonus": 20, "failPenalty": -10, "successMsg": "Gelecek sipariş sözün toptancıyı mest etti! (+20 İlişki)", "failMsg": "Toptancı sözüne şüpheyle yaklaştı. (-10 İlişki)" },
+          { "id": "hard", "name": "💼 Sert İndirim Masaya Koy", "desc": "Yüksek risk, yüksek kazanç.", "successRate": 0.35, "successBonus": 30, "failPenalty": -15, "successMsg": "Profesyonel duruşunla toptancıyı ikna ettin! (+30 İlişki)", "failMsg": "Toptancı restine sert karşılık verdi! (-15 İlişki)" }
+        ]
+      }
+    },
+    "minister": {
+      "id": "minister",
+      "name": "Maliye Bakanlığı & Denetim",
+      "icon": "🏛️",
+      "desc": "Vergi politikaları ve devlet hibeleri. İlişki yüksekse kurumlar vergisi sıfırlanabilir. Düşükse çifte vergi ve denetim gelir.",
+      "defaultVal": 50,
+      "weeklyDecay": 2,
+      "minigame": {
+        "title": "📋 Bakanlık Denetim Sunumu",
+        "desc": "Müfettişler şirketini teftişe geldi. Nasıl bir savunma dosyası sunacaksın?",
+        "options": [
+          { "id": "audit", "name": "📊 Şeffaf Muhasebe Defteri", "desc": "Standart yasal beyan.", "successRate": 0.70, "successBonus": 12, "failPenalty": -8, "successMsg": "Müfettişler hesapları tertemiz buldu! (+12 İlişki)", "failMsg": "Ufak pürüzler tespit edildi. (-8 İlişki)" },
+          { "id": "csr", "name": "🌱 Sosyal Sorumluluk Dosyası", "desc": "Vakıf bağışlarını öne sür.", "successRate": 0.60, "successBonus": 22, "failPenalty": -5, "successMsg": "Devlet, yaptığın hayırseverlikten gurur duydu! (+22 İlişki)", "failMsg": "Müfettişler sadece resmi rakamlara baktı." },
+          { "id": "sponsor", "name": "🏛️ Kamu Projesine Sponsorluk ($10,000)", "desc": "Garantili devlet teşviki.", "cost": 10000, "successRate": 1.0, "successBonus": 25, "failPenalty": 0, "successMsg": "Bakanlık şilt takdim etti ve tebrik mektubu yolladı! (+25 İlişki)", "failMsg": "" }
+        ]
+      }
+    },
+    "mafia": {
+      "id": "mafia",
+      "name": "Yeraltı Dünyası (Rüşvet)",
+      "icon": "🕶️",
+      "desc": "Şehrin arka sokaklarındaki güç. İlişki yüksekse rakipleri sabote ederler. Düşükse dükkanına zarar verip haraç keserler.",
+      "defaultVal": 10,
+      "weeklyDecay": 1,
+      "minigame": {
+        "title": "🎲 Yeraltı Kumar & Zar Düellosu",
+        "desc": "Arka sokaktaki depoda mafya lideriyle zar atıyorsun. (1-6 arası zar, yüksek atan kazanır)",
+        "isDice": true,
+        "winBonus": 25,
+        "winMoney": 10000,
+        "losePenalty": -15,
+        "loseMoney": 5000
+      }
+    }
+  }
+}

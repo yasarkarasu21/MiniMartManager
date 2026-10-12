@@ -18,8 +18,22 @@ const StateManager = {
             }
         });
 
+        let initialQuests = {};
+        if (typeof GameData !== 'undefined' && GameData.quests) {
+            for (let qId in GameData.quests) {
+                let q = GameData.quests[qId];
+                initialQuests[qId] = {
+                    title: q.title,
+                    desc: q.desc,
+                    level: q.level,
+                    done: false,
+                    claimed: false
+                };
+            }
+        }
+
         return {
-            day: 1, week: 1, month: 1, money: 1000, popularity: 50, storageCapacity: 200, currentStorage: 0,
+            day: 1, week: 1, month: 1, currentLevel: 1, money: 1000, popularity: 50, storageCapacity: 200, currentStorage: 0,
             loan: 0, deposits: 0, insurance: false, researchPoints: 0, franchisePoints: 0, prestigeCount: 0,
             marketShare: 5.0, rivalDefeated: false, buildingLevel: 1, currentTransportUsed: 0,
             fleet: {
@@ -34,25 +48,10 @@ const StateManager = {
             staff: { cashier: 0, guard: 0, janitor: 0, warehouse: 0, manager: 0 },
             stocks: { megatech: { shares: 0, price: 150, oldPrice: 150 }, foodco: { shares: 0, price: 60, oldPrice: 60 }, gold: { shares: 0, price: 500, oldPrice: 500 }, doge: { shares: 0, price: 10, oldPrice: 10 } },
             upgrades: { storage2: false, storage3: false, storage4: false },
-            marketingBoost: 0, marketingDaysLeft: 0, modifiers: { buyMod: 1 }, stats: { earned: 0, spent: 0 }, logs: [],
+            marketingBoost: 0, marketingDaysLeft: 0, modifiers: { buyMod: 1 }, stats: { earned: 0, spent: 0, contractsCompleted: 0 }, logs: [],
             trendActive: null, trendDaysLeft: 0, blackMarketActive: false, blackMarketItem: null,
-            quests: {
-                q1: { title: 'Tüccar', desc: '$5,000 kazanca ulaş.', reqMoney: 5000, rp: 10, done: false, claimed: false },
-                q2: { title: 'Borsa Kurdu', desc: '10 Lot Altın al.', reqGold: 10, rp: 15, done: false, claimed: false },
-                q3: { title: 'Lojistik', desc: 'İlk Kamyonunu satın al.', reqTruck: true, rp: 20, done: false, claimed: false },
-                q4: { title: 'Büyüme', desc: 'Süpermarket statüsüne geç.', reqBuild: 2, rp: 30, done: false, claimed: false },
-                q5: { title: 'Lüks', desc: 'Spor Araba sat.', reqCar: true, rp: 50, done: false, claimed: false },
-                q6: { title: 'İşveren', desc: '5 Kasiyer işe al.', reqCashier: 5, rp: 25, done: false, claimed: false },
-                q7: { title: 'Popüler', desc: '150 Popülariteye ulaş.', reqPop: 150, rp: 35, done: false, claimed: false },
-                q8: { title: 'Teknoloji', desc: 'Laptop reyonunu aç.', reqLaptop: true, rp: 40, done: false, claimed: false },
-                q9: { title: 'Holding', desc: '$100,000 kazanca ulaş.', reqMoney2: 100000, rp: 100, done: false, claimed: false },
-                q10: { title: 'Nakliyat Kralı', desc: 'Kargo Uçağı satın al.', reqPlane: true, rp: 200, done: false, claimed: false },
-                q11: { title: 'Güvenlik Ağı', desc: '3 Güvenlik Görevlisi işe al.', reqGuard: 3, rp: 30, done: false, claimed: false },
-                q12: { title: 'Sağlık Sektörü', desc: 'Şirket İtibarını (REP) 50 yap.', reqRep: 50, rp: 45, done: false, claimed: false },
-                q13: { title: 'Mafya Dostu', desc: 'Mafya ilişkisini 80 yap.', reqMafia: 80, rp: 60, done: false, claimed: false },
-                q14: { title: 'Milyoner', desc: '$1,000,000 kazanca ulaş.', reqMoney3: 1000000, rp: 150, done: false, claimed: false },
-                q15: { title: 'Tekel', desc: 'Rakibini satın al.', reqRivalDefeated: true, rp: 500, done: false, claimed: false }
-            },
+            quests: initialQuests,
+            foundations: { children: 0, green: 0, tech_edu: 0, animal: 0 },
             skills: {
                 negotiator: { name: 'Pazarlık Ustası', desc: 'Alış fiyatları kalıcı olarak %10 ucuzlar.', cost: 15, unlocked: false },
                 marketingPro: { name: 'Sosyal Medya Dahisi', desc: 'Reklam kampanyaları %50 daha fazla müşteri çeker.', cost: 20, unlocked: false },
@@ -113,6 +112,37 @@ const StateManager = {
         if (!merged.incomingCargo) merged.incomingCargo = [];
         if (!merged.reviews) merged.reviews = [];
         if (!merged.relations) merged.relations = { wholesaler: 50, minister: 50, mafia: 10 };
+
+        // Foundations safe merge
+        if (!merged.foundations) {
+            merged.foundations = { children: 0, green: 0, tech_edu: 0, animal: 0 };
+        } else {
+            for (let f of ['children', 'green', 'tech_edu', 'animal']) {
+                if (merged.foundations[f] === undefined || isNaN(merged.foundations[f])) merged.foundations[f] = 0;
+            }
+        }
+
+        // Level & Stats safe merge
+        if (merged.currentLevel === undefined) merged.currentLevel = 1;
+        if (!merged.stats) merged.stats = { earned: 0, spent: 0, contractsCompleted: 0 };
+        if (merged.stats.contractsCompleted === undefined) merged.stats.contractsCompleted = 0;
+
+        // Quests safe merge
+        if (typeof GameData !== 'undefined' && GameData.quests) {
+            if (!merged.quests) merged.quests = {};
+            for (let qId in GameData.quests) {
+                let q = GameData.quests[qId];
+                if (!merged.quests[qId]) {
+                    merged.quests[qId] = {
+                        title: q.title,
+                        desc: q.desc,
+                        level: q.level,
+                        done: false,
+                        claimed: false
+                    };
+                }
+            }
+        }
 
         return merged;
     },

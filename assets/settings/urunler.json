@@ -1,0 +1,17 @@
+{
+  "products": {
+    "apple": { "name": "Elma", "type": "Manav", "category": "food", "buy": 2, "sell": 5, "unlock": 0, "space": 1, "demand": 30, "reqBuild": 1, "reqQuest": null, "cargoDays": 1, "isDefault": true },
+    "bread": { "name": "Ekmek", "type": "Fırın", "category": "food", "buy": 3, "sell": 7, "unlock": 250, "space": 1, "demand": 25, "reqBuild": 1, "reqQuest": null, "cargoDays": 1, "isDefault": false },
+    "milk": { "name": "Süt", "type": "Şarküteri", "category": "food", "buy": 5, "sell": 12, "unlock": 600, "space": 1, "demand": 20, "reqBuild": 1, "reqQuest": null, "cargoDays": 1, "isDefault": false },
+    "tshirt": { "name": "T-Shirt", "type": "Giyim", "category": "clothes", "buy": 15, "sell": 40, "unlock": 1500, "space": 2, "demand": 15, "reqBuild": 1, "reqQuest": null, "cargoDays": 2, "isDefault": false },
+    "shoes": { "name": "Ayakkabı", "type": "Giyim", "category": "clothes", "buy": 35, "sell": 85, "unlock": 4000, "space": 3, "demand": 10, "reqBuild": 1, "reqQuest": null, "cargoDays": 2, "isDefault": false },
+    "phone": { "name": "Telefon", "type": "Elektronik", "category": "tech", "buy": 250, "sell": 600, "unlock": 10000, "space": 2, "demand": 5, "reqBuild": 1, "reqQuest": null, "cargoDays": 3, "isDefault": false },
+    "laptop": { "name": "Laptop", "type": "Elektronik", "category": "tech", "buy": 600, "sell": 1500, "unlock": 25000, "space": 5, "demand": 3, "reqBuild": 1, "reqQuest": null, "cargoDays": 3, "isDefault": false },
+    "tv": { "name": "Plazma TV", "type": "Elektronik", "category": "tech", "buy": 1500, "sell": 3500, "unlock": 75000, "space": 10, "demand": 2, "reqBuild": 2, "reqQuest": null, "cargoDays": 4, "isDefault": false },
+    "car": { "name": "Spor Araba", "type": "Lüks", "category": "luxury", "buy": 35000, "sell": 80000, "unlock": 500000, "space": 50, "demand": 1, "reqBuild": 3, "reqQuest": null, "cargoDays": 7, "isDefault": false },
+    "pharmacy": { "name": "Vitamin & İlaç", "type": "Eczane", "category": "health", "buy": 100, "sell": 250, "unlock": 35000, "space": 1, "demand": 15, "reqBuild": 2, "reqQuest": "l6_q2", "cargoDays": 2, "isDefault": false },
+    "cosmetics": { "name": "Kozmetik", "type": "Kozmetik", "category": "health", "buy": 50, "sell": 150, "unlock": 18000, "space": 1, "demand": 12, "reqBuild": 1, "reqQuest": "l4_q1", "cargoDays": 2, "isDefault": false },
+    "toys": { "name": "Oyuncak", "type": "Oyuncak", "category": "toys", "buy": 20, "sell": 60, "unlock": 8000, "space": 2, "demand": 18, "reqBuild": 1, "reqQuest": null, "cargoDays": 2, "isDefault": false },
+    "furniture": { "name": "Mobilya", "type": "Ev", "category": "home", "buy": 800, "sell": 2000, "unlock": 120000, "space": 15, "demand": 2, "reqBuild": 2, "reqQuest": null, "cargoDays": 5, "isDefault": false }
+  }
+}

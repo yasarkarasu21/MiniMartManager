@@ -1,0 +1,15 @@
+{
+  "lawyers": [
+    { "level": 0, "name": "Avukat Yok", "fee": 0, "winRate": 10, "desc": "Çok riskli. %10 Mahkeme kazanma şansı." },
+    { "level": 1, "name": "Stajyer Avukat", "fee": 200, "winRate": 40, "desc": "Günlük ücreti ucuz. %40 Mahkeme kazanma şansı." },
+    { "level": 2, "name": "Şirket Avukatı", "fee": 1000, "winRate": 70, "desc": "Profesyonel savunma. %70 Mahkeme kazanma şansı." },
+    { "level": 3, "name": "Şeytanın Avukatı", "fee": 4000, "winRate": 95, "desc": "Davalarda mutlak zafer. %95 Mahkeme kazanma şansı." }
+  ],
+  "lawsuitTypes": [
+    { "type": "Müşteri Reyonda Kayıp Düştü", "baseCost": 15000, "preventable": true, "desc": "Zemin kayganlığı nedeniyle açılan tazminat davası." },
+    { "type": "Bozuk Ürün Zehirlenmesi", "baseCost": 35000, "preventable": false, "desc": "Gıda reyonundaki bozuk ürün kaynaklı sağlık davası." },
+    { "type": "Personel Hakareti Davası", "baseCost": 8000, "preventable": false, "desc": "Kasiyerin müşteriye uygunsuz davranışı davası." },
+    { "type": "Hatalı Elektronik Patlaması", "baseCost": 25000, "preventable": false, "desc": "Satılan kalitesiz şarj aletinin patlaması davası." },
+    { "type": "Telif Hakkı İhlali İhtarı", "baseCost": 50000, "preventable": false, "desc": "Mega Holding avukatlarının açtığı marka taklidi davası." }
+  ]
+}

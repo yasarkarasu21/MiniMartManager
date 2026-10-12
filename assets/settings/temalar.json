@@ -1,0 +1,39 @@
+{
+  "themes": {
+    "theme-modern": {
+      "id": "theme-modern",
+      "name": "Modern",
+      "primaryColor": "#4361ee",
+      "primaryDark": "#3a0ca3",
+      "successColor": "#2ecc71",
+      "dangerColor": "#ff4757",
+      "warningColor": "#ffa502",
+      "fontFamily": "'Nunito', sans-serif"
+    },
+    "theme-classic": {
+      "id": "theme-classic",
+      "name": "Klasik (Retro)",
+      "primaryColor": "#000080",
+      "primaryDark": "#000040",
+      "successColor": "#008000",
+      "dangerColor": "#800000",
+      "warningColor": "#808000",
+      "fontFamily": "'Courier New', Courier, monospace"
+    },
+    "theme-medieval": {
+      "id": "theme-medieval",
+      "name": "Ortaçağ (Tüccar)",
+      "primaryColor": "#8d6e63",
+      "primaryDark": "#3e2723",
+      "successColor": "#388e3c",
+      "dangerColor": "#b71c1c",
+      "warningColor": "#f57f17",
+      "fontFamily": "'Palatino Linotype', 'Book Antiqua', Palatino, serif"
+    }
+  },
+  "defaultSettings": {
+    "volume": 0.8,
+    "theme": "theme-modern",
+    "lang": "tr"
+  }
+}

@@ -8,8 +8,11 @@ const App = {
         g: null
     },
 
-    init: () => {
+    init: async () => {
         document.body.className = App.state.theme;
+        if (typeof GameData !== 'undefined' && GameData.loadSettingsAsync) {
+            await GameData.loadSettingsAsync();
+        }
         StateManager.migrateLegacy();
         App.navigate('start');
         

@@ -456,11 +456,103 @@ const UI = {
     },
     
     renderRDPanel: () => {
-        let g = App.state.g; let h = `<div class="panel text-center mb-2" style="font-size:1.4rem; color:var(--primary-dark);">Ar-Ge Bütçesi: <strong>${g.researchPoints} RP</strong></div>`;
-        for(let k in g.skills) { let s = g.skills[k]; h += `<div class="item-row skill"><div class="item-info"><span class="item-title">${s.name}</span><span class="item-sub">${s.desc}</span></div><div class="item-action">${s.unlocked ? '<button class="btn" disabled style="background:var(--success);">Açıldı</button>' : `<button class="btn btn-purple" onclick="Engine.unlockSkill('${k}')">Aç (${s.cost} RP)</button>`}</div></div>`; }
-        h += '<div class="page-header mt-2" style="font-size:1.2rem;">📋 Aktif Görevler</div>';
-        if(g.quests) {
-            for(let k in g.quests) { let q = g.quests[k]; if(!q.claimed) h += `<div class="item-row quest"><div class="item-info"><span class="item-title">${q.title}</span><span class="item-sub">${q.desc}</span></div><div class="item-action"><button class="btn" onclick="Engine.claimQuest('${k}')" ${!q.done ? 'disabled' : ''} style="${q.done ? 'background:var(--success);' : ''}">${q.done ? 'Ödülü Al' : 'Bekliyor'}</button></div></div>`; }
+        let g = App.state.g;
+        if (!g.currentLevel) Engine.updatePlayerLevel();
+        let curLvl = g.currentLevel || 1;
+        let lvlInfo = (typeof GameData !== 'undefined' && GameData.levels && GameData.levels[curLvl]) 
+            ? GameData.levels[curLvl] 
+            : { name: "Tüccar", desc: "Ticarete devam et." };
+
+        let h = `<div class="panel mb-2" style="background:linear-gradient(135deg, #2c3e50, #3498db); color:white; padding:15px; text-align:center;">
+            <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; opacity:0.9;">Mevcut Şirket Statüsü</div>
+            <div style="font-size:1.5rem; font-weight:900; margin:4px 0;">⭐ Seviye ${curLvl}: ${lvlInfo.name}</div>
+            <div style="font-size:0.85rem; opacity:0.9; margin-bottom:10px;">${lvlInfo.desc}</div>
+            <div style="display:inline-block; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:20px; font-weight:bold; font-size:0.9rem;">
+                🧪 Ar-Ge Bütçesi: ${g.researchPoints} RP
+            </div>
+        </div>`;
+
+        // Ar-Ge Becerileri (Skills)
+        h += '<div class="page-header mt-2" style="font-size:1.1rem;">💡 Ar-Ge Yetenekleri</div>';
+        for(let k in g.skills) {
+            let s = g.skills[k];
+            h += `<div class="item-row skill" style="margin-bottom:6px;">
+                <div class="item-info">
+                    <span class="item-title">${s.name}</span>
+                    <span class="item-sub">${s.desc}</span>
+                </div>
+                <div class="item-action">
+                    ${s.unlocked ? '<button class="btn btn-sm" disabled style="background:var(--success); color:white;">Açıldı</button>' : `<button class="btn btn-purple btn-sm" onclick="Engine.unlockSkill('${k}')">Aç (${s.cost} RP)</button>`}
+                </div>
+            </div>`;
+        }
+
+        // Seviye Bazlı Görevler (Level Quests)
+        h += '<div class="page-header mt-3" style="font-size:1.1rem;">📋 Seviye Görevleri & Hedefler</div>';
+
+        if (typeof GameData !== 'undefined' && GameData.quests && GameData.levels) {
+            for (let l = 1; l <= 10; l++) {
+                let lData = GameData.levels[l];
+                if (!lData) continue;
+                let levelQuestKeys = Object.keys(GameData.quests).filter(k => GameData.quests[k].level === l);
+                if (levelQuestKeys.length === 0) continue;
+
+                let isLevelDone = levelQuestKeys.every(k => g.quests[k] && g.quests[k].claimed);
+                let isCurrentLevel = (l === curLvl);
+                let isLocked = (l > curLvl);
+
+                let headerBg = isLevelDone ? 'rgba(46, 204, 113, 0.15)' : (isCurrentLevel ? 'rgba(52, 152, 219, 0.15)' : 'rgba(0,0,0,0.03)');
+                let borderCol = isLevelDone ? 'var(--success)' : (isCurrentLevel ? 'var(--primary)' : '#ddd');
+                let statusBadge = isLevelDone ? '<span style="color:var(--success); font-weight:bold; font-size:0.8rem;">✅ Tamamlandı</span>' : (isCurrentLevel ? '<span style="color:var(--primary); font-weight:bold; font-size:0.8rem;">⭐ Aktif Seviye</span>' : '<span style="color:var(--text-muted); font-size:0.8rem;">🔒 Kilitli</span>');
+
+                h += `<div class="panel mb-2" style="border-left: 4px solid ${borderCol}; background:${headerBg}; padding:10px 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-weight:900; font-size:1rem; color:var(--text-dark);">Seviye ${l}: ${lData.name}</span>
+                        ${statusBadge}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">${lData.desc}</div>`;
+
+                levelQuestKeys.forEach(qKey => {
+                    let qDef = GameData.quests[qKey];
+                    let qState = g.quests[qKey] || { done: false, claimed: false };
+
+                    let prereqsOk = true;
+                    if (qDef.prereqQuests && qDef.prereqQuests.length > 0) {
+                        prereqsOk = qDef.prereqQuests.every(pKey => g.quests[pKey] && (g.quests[pKey].claimed || g.quests[pKey].done));
+                    }
+                    let buildOk = !qDef.reqBuild || (g.buildingLevel >= qDef.reqBuild);
+
+                    let rewardStr = [];
+                    if (qDef.reward.money) rewardStr.push(`+$${qDef.reward.money.toLocaleString()}`);
+                    if (qDef.reward.rp) rewardStr.push(`+${qDef.reward.rp} RP`);
+                    if (qDef.reward.rep) rewardStr.push(`+${qDef.reward.rep} REP`);
+
+                    let actionBtn = '';
+                    if (qState.claimed) {
+                        actionBtn = `<button class="btn btn-sm" disabled style="background:var(--success); color:white; opacity:0.9;">✅ Alındı</button>`;
+                    } else if (qState.done) {
+                        actionBtn = `<button class="btn btn-green btn-sm" style="animation: pulse 1.5s infinite;" onclick="Engine.claimQuest('${qKey}')">🎁 Ödülü Al</button>`;
+                    } else if (!prereqsOk || !buildOk) {
+                        actionBtn = `<button class="btn btn-sm" disabled style="opacity:0.5; font-size:0.75rem;">🔒 Kilitli</button>`;
+                    } else {
+                        actionBtn = `<button class="btn btn-sm" disabled style="opacity:0.6; font-size:0.75rem;">Devam Ediyor</button>`;
+                    }
+
+                    h += `<div class="item-row quest" style="background:white; margin-bottom:6px; padding:8px 10px; border-radius:10px; border:1px solid rgba(0,0,0,0.06);">
+                        <div class="item-info">
+                            <span class="item-title" style="font-size:0.95rem;">${qDef.title}</span>
+                            <span class="item-sub" style="font-size:0.8rem;">${qDef.desc}</span>
+                            <span class="item-sub" style="color:var(--primary); font-size:0.75rem; font-weight:bold;">Ödül: ${rewardStr.join(', ')}</span>
+                            ${(!buildOk && qDef.reqBuild) ? `<span class="item-sub red" style="font-size:0.75rem;">⚠️ Gereken Bina: Seviye ${qDef.reqBuild}</span>` : ''}
+                        </div>
+                        <div class="item-action">
+                            ${actionBtn}
+                        </div>
+                    </div>`;
+                });
+
+                h += `</div>`;
+            }
         }
         document.getElementById('rd-view').innerHTML = h;
     },
@@ -542,38 +634,109 @@ const UI = {
     },
 
     renderRelationsPanel: () => {
-        let g = App.state.g; let h = '';
-        if(!g.relations) g.relations = { wholesaler: 50, minister: 50, mafia: 10 };
+        let g = App.state.g;
+        if (!g.relations) g.relations = { wholesaler: 50, minister: 50, mafia: 10 };
+        if (!g.foundations) g.foundations = { children: 0, green: 0, tech_edu: 0, animal: 0 };
         
-        h += `<div class="panel text-center mb-2" style="background:var(--primary-dark); color:white;">
-            <div style="font-size:1.4rem; font-weight:900;">🤝 İlişki Yönetimi</div>
-            <div style="font-size:0.9rem; opacity:0.9;">Tedarikçiler ve güç sahipleriyle aranı iyi tut.</div>
+        let h = `<div class="panel text-center mb-2" style="background:linear-gradient(135deg, #1e3799, #0c2461); color:white; padding:15px;">
+            <div style="font-size:1.4rem; font-weight:900;">🤝 İlişki Yönetimi & Hayırseverlik</div>
+            <div style="font-size:0.85rem; opacity:0.9;">Masadaki güçlerle ilişkilerini koru ve vakıf bağışlarıyla kalıcı itibar kazan!</div>
         </div>`;
-        
-        let rels = [
-            { id: 'wholesaler', name: 'Toptancılar Birliği', icon: '📦', desc: 'İlişki yüksekse malları daha ucuza alırsın. Düşükse fiyatlar artar.', cost: 5000, boost: 10 },
-            { id: 'minister', name: 'Maliye Bakanlığı', icon: '🏛️', desc: 'İlişki yüksekse vergi afları ve hibeler alırsın. Düşükse denetimler artar.', cost: 15000, boost: 10 },
-            { id: 'mafia', name: 'Yerel Mafya (Rüşvet)', icon: '🕶️', desc: 'İlişki yüksekse rakiplerini sabote ederler. Düşükse dükkanına zarar verebilirler.', cost: 25000, boost: 20 }
-        ];
 
-        rels.forEach(r => {
-            let val = g.relations[r.id];
-            let color = val >= 80 ? 'var(--success)' : (val < 30 ? 'var(--danger)' : '#f39c12');
-            let status = val >= 80 ? 'Mükemmel' : (val < 30 ? 'Düşmanca' : 'Nötr');
-            
-            h += `<div class="panel mb-2">
+        // BÖLÜM 1: GÜÇ ODAKLARI VE ETKİLEŞİM / MİNİ OYUNLAR
+        h += `<div class="page-header mt-2" style="font-size:1.15rem;">🏢 Masadaki Güçler (Mini Oyunlar & Kararlar)</div>`;
+
+        let instKeys = ['wholesaler', 'minister', 'mafia'];
+        instKeys.forEach(instId => {
+            let inst = (typeof GameData !== 'undefined' && GameData.institutions) ? GameData.institutions[instId] : null;
+            if (!inst) return;
+            let val = g.relations[instId] !== undefined ? g.relations[instId] : inst.defaultVal;
+            let color = val >= 75 ? 'var(--success)' : (val < 30 ? 'var(--danger)' : '#f39c12');
+            let status = val >= 75 ? 'Mükemmel' : (val < 30 ? 'Düşmanca' : 'Dengeli');
+
+            h += `<div class="panel mb-3" style="border:1px solid rgba(0,0,0,0.08); padding:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <span style="font-weight:900; font-size:1.1rem;">${r.icon} ${r.name}</span>
-                    <span style="color:${color}; font-weight:bold;">${val}/100 (${status})</span>
+                    <span style="font-weight:900; font-size:1.05rem;">${inst.icon} ${inst.name}</span>
+                    <span style="color:${color}; font-weight:bold; font-size:0.9rem;">${val}/100 (${status})</span>
                 </div>
-                <div class="progress-bar mb-2" style="height:8px; background:rgba(0,0,0,0.1);"><div class="progress-fill" style="width:${val}%; background:${color};"></div></div>
-                <div style="font-size:0.85rem; color:var(--text-dark); margin-bottom:10px;">${r.desc}</div>
-                <div style="text-align:right;">
-                    <button class="btn btn-primary" onclick="Engine.improveRelation('${r.id}', ${r.cost}, ${r.boost})">Bağış Yap (${App.formatMoney(r.cost)})</button>
+                <div class="progress-bar mb-2" style="height:8px; background:rgba(0,0,0,0.08); border-radius:4px;">
+                    <div class="progress-fill" style="width:${val}%; background:${color}; border-radius:4px;"></div>
                 </div>
-            </div>`;
+                <div style="font-size:0.82rem; color:var(--text-dark); margin-bottom:10px; line-height:1.4;">${inst.desc}</div>`;
+
+            if (inst.minigame) {
+                h += `<div style="background:rgba(0,0,0,0.03); border:1px dashed #ccc; border-radius:8px; padding:10px; margin-top:8px;">
+                    <div style="font-weight:bold; font-size:0.85rem; color:var(--primary-dark); margin-bottom:4px;">${inst.minigame.title}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">${inst.minigame.desc}</div>`;
+
+                if (inst.minigame.isDice) {
+                    h += `<div style="text-align:center;">
+                        <button class="btn btn-warning" onclick="Engine.playRelationMinigame('${instId}', 0)" style="width:100%; font-weight:bold;">
+                            🎲 Zarları At! (Kazan: +25 İlişki & $10,000 / Kaybet: -15 & -$5,000)
+                        </button>
+                    </div>`;
+                } else if (inst.minigame.options) {
+                    h += `<div style="display:flex; flex-direction:column; gap:6px;">`;
+                    inst.minigame.options.forEach((opt, oIdx) => {
+                        let costText = opt.cost ? ` (Maliyet: ${App.formatMoney(opt.cost)})` : '';
+                        let chanceText = opt.cost ? 'Garantili' : `%${Math.round(opt.successRate * 100)} Şans`;
+                        h += `<button class="btn btn-outline" onclick="Engine.playRelationMinigame('${instId}', ${oIdx})" style="text-align:left; font-size:0.8rem; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span><b>${opt.name}</b>${costText}</span>
+                            <span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${chanceText}</span>
+                        </button>`;
+                    });
+                    h += `</div>`;
+                }
+                h += `</div>`;
+            }
+
+            h += `</div>`;
         });
-        
+
+        // BÖLÜM 2: VAKIFLAR VE HAYIRSEVERLİK
+        h += `<div class="page-header mt-3" style="font-size:1.15rem;">🌱 Hayırseverlik & Vakıflar (Sosyal Yatırım)</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Bağış yaparak vakıfları geliştir; her seviye şirketinize kalıcı itibar ve pasif avantajlar sağlar.</div>`;
+
+        if (typeof GameData !== 'undefined' && GameData.foundations) {
+            for (let fId in GameData.foundations) {
+                let f = GameData.foundations[fId];
+                let curLvl = (g.foundations && g.foundations[fId] !== undefined) ? g.foundations[fId] : 0;
+                let maxLvl = f.maxLevel || 10;
+                let isMax = curLvl >= maxLvl;
+                let cost = Math.floor(f.baseCost * Math.pow(1.5, curLvl));
+                let pct = Math.floor((curLvl / maxLvl) * 100);
+
+                let currentEffectStr = '';
+                if (curLvl === 0) {
+                    currentEffectStr = 'Henüz bağış yapılmadı.';
+                } else {
+                    let parts = [];
+                    if (f.effectPerLevel.pop) parts.push(`+${curLvl * f.effectPerLevel.pop} Popülarite`);
+                    if (f.effectPerLevel.demandPercent) parts.push(`+%${curLvl * f.effectPerLevel.demandPercent} Talep`);
+                    if (f.effectPerLevel.taxDiscountPercent) parts.push(`%${curLvl * f.effectPerLevel.taxDiscountPercent} Vergi İndirimi`);
+                    if (f.effectPerLevel.dailyRP) parts.push(`+${curLvl * f.effectPerLevel.dailyRP} Günlük RP`);
+                    if (f.effectPerLevel.corporateRep) parts.push(`+${curLvl * f.effectPerLevel.corporateRep} Kurumsal REP`);
+                    currentEffectStr = `Aktif Bonus: ` + parts.join(', ');
+                }
+
+                h += `<div class="panel mb-2" style="border:1px solid rgba(0,0,0,0.08); padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-weight:900; font-size:1.05rem;">${f.icon} ${f.name}</span>
+                        <span style="font-weight:bold; font-size:0.85rem; color:var(--primary);">Seviye ${curLvl} / ${maxLvl}</span>
+                    </div>
+                    <div class="progress-bar mb-2" style="height:6px; background:rgba(0,0,0,0.06); border-radius:3px;">
+                        <div class="progress-fill" style="width:${pct}%; background:var(--success); border-radius:3px;"></div>
+                    </div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">${f.desc}</div>
+                    <div style="font-size:0.8rem; color:var(--primary-dark); font-weight:bold; margin-bottom:4px;">💡 ${f.effectDesc}</div>
+                    <div style="font-size:0.78rem; color:var(--success-dark); font-style:italic; margin-bottom:10px;">${currentEffectStr}</div>
+                    <div style="text-align:right;">
+                        ${isMax ? '<button class="btn btn-sm" disabled style="background:var(--success); color:white;">Maksimum Seviye</button>' : `<button class="btn btn-green btn-sm" onclick="Engine.donateFoundation('${fId}')">🌟 Bağış Yap (${App.formatMoney(cost)})</button>`}
+                    </div>
+                </div>`;
+            }
+        }
+
         document.getElementById('relations-view').innerHTML = h;
     },
 

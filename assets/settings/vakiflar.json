@@ -1,0 +1,44 @@
+{
+  "foundations": {
+    "children": {
+      "id": "children",
+      "name": "Geleceğe Umut Çocuk Vakfı",
+      "icon": "🧒",
+      "desc": "Öğrencilere burs ve ihtiyaç sahibi çocuklara gıda desteği sağlar.",
+      "baseCost": 5000,
+      "maxLevel": 10,
+      "effectPerLevel": { "pop": 5, "demandPercent": 3 },
+      "effectDesc": "Seviye başına +5 Kalıcı Popülarite ve +%3 Müşteri Talebi."
+    },
+    "green": {
+      "id": "green",
+      "name": "Yeşil Doğa & Temiz Çevre Vakfı",
+      "icon": "🌱",
+      "desc": "Şehirde fidan dikimi ve çevre projeleri yürütür.",
+      "baseCost": 7500,
+      "maxLevel": 10,
+      "effectPerLevel": { "taxDiscountPercent": 2, "ministerRel": 2 },
+      "effectDesc": "Haftalık kurumlar vergisinde %2 indirim ve Bakanlık desteği."
+    },
+    "tech_edu": {
+      "id": "tech_edu",
+      "name": "Milli Teknoloji & Burs Vakfı",
+      "icon": "💡",
+      "desc": "Genç girişimcilere ve teknoloji Ar-Ge laboratuvarlarına fon sağlar.",
+      "baseCost": 10000,
+      "maxLevel": 10,
+      "effectPerLevel": { "dailyRP": 2 },
+      "effectDesc": "Her gün sonu otomatik +2 Ar-Ge Puanı (RP) üretir."
+    },
+    "animal": {
+      "id": "animal",
+      "name": "Can Dostlar Hayvanları Koruma Vakfı",
+      "icon": "🐾",
+      "desc": "Sokak hayvanları barınakları ve veteriner kliniklerine destek olur.",
+      "baseCost": 4000,
+      "maxLevel": 10,
+      "effectPerLevel": { "corporateRep": 4, "reviewBoost": true },
+      "effectDesc": "Seviye başına +4 Kurumsal İtibar (REP) ve süper müşteri yorumları."
+    }
+  }
+}

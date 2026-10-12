@@ -1,0 +1,13 @@
+{
+  "baseBuildings": {
+    "1": { "name": "Kiosk", "cost": 0, "popBoost": 0, "desc": "Temel satış noktası ve mahalle esnaflığı." },
+    "2": { "name": "Süpermarket", "cost": 75000, "popBoost": 15, "desc": "Geniş reyonlar, Plazma TV, Mobilya ve İlaç satışı." },
+    "3": { "name": "Mega AVM", "cost": 400000, "popBoost": 40, "desc": "Spor Araba galerisi ve devasa müşteri kapasitesi." }
+  },
+  "proceduralConfig": {
+    "maxLevels": 150,
+    "baseCost": 400000,
+    "costMultiplier": 1.15,
+    "popPerLevel": 5
+  }
+}
