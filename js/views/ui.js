@@ -18,6 +18,10 @@ const UI = {
                 <div class="progress-bar"><div class="progress-fill" id="storage-fill" style="width: 0%;"></div></div>
             </div>
             <div class="top-row mt-2" id="trend-bar" style="display:none; width:100%;"><div class="trend-badge" style="width:100%; text-align:center;">🌍 ${t('headerTrend')}: <span id="s-trend"></span> (<span id="s-trend-days"></span> ${t('day')})</div></div>
+            <div class="top-row mt-2" style="gap:6px;">
+                <button class="btn btn-outline" style="flex:1; padding:5px 8px; font-size:0.75rem; border-color:#3498db; color:#2980b9; font-weight:bold; background:rgba(52,152,219,0.1);" onclick="UI.showWalkthroughModal()">📖 ${t('walkthroughBtn')}</button>
+                <button class="btn btn-outline" id="header-autopilot-btn" style="flex:1; padding:5px 8px; font-size:0.75rem; border-color:#9b59b6; color:#8e44ad; font-weight:bold; background:rgba(155,89,182,0.1);" onclick="Engine.toggleAutoPilot()">🤖 ${t('autopilotBtn')}</button>
+            </div>
         </header>
 
         <div class="game-scroll-area">
@@ -28,6 +32,18 @@ const UI = {
                 <section id="tab-b2b" class="tab-content hidden"><div id="b2b-view"></div></section>
                 <section id="tab-manage" class="tab-content hidden">
                     <div class="page-header">👔 ${t('manage')}</div>
+
+                    <div class="manage-card" onclick="UI.showWalkthroughModal()" style="border-left: 4px solid #3498db; background: linear-gradient(135deg, rgba(52,152,219,0.1), rgba(41,128,185,0.05));">
+                        <div class="mc-icon" style="background:linear-gradient(135deg, #2980b9, #3498db);">📖</div>
+                        <div class="mc-content"><div class="mc-title">${t('walkthroughTitle')}</div><div class="mc-desc">${App.state.lang==='tr'?'Adım Adım Level 1-10 Rehberi':'Step-by-Step Level 1-10 Guide'}</div></div>
+                        <div class="mc-arrow">▶</div>
+                    </div>
+
+                    <div class="manage-card" id="mc-autopilot" onclick="Engine.toggleAutoPilot()" style="border-left: 4px solid #9b59b6; background: linear-gradient(135deg, rgba(155,89,182,0.1), rgba(142,68,173,0.05));">
+                        <div class="mc-icon" style="background:linear-gradient(135deg, #8e44ad, #9b59b6);">🤖</div>
+                        <div class="mc-content"><div class="mc-title" id="mc-autopilot-title">${(typeof Engine !== 'undefined' && Engine.isAutoPilot) ? t('autopilotActive') : t('autopilotBtn')}</div><div class="mc-desc">${App.state.lang==='tr'?'Yapay zeka dükkanı otomatik yönetsin':'Let AI manage the store automatically'}</div></div>
+                        <div class="mc-arrow" id="mc-autopilot-icon">${(typeof Engine !== 'undefined' && Engine.isAutoPilot) ? '⏹️' : '▶'}</div>
+                    </div>
 
                     <div class="manage-card" onclick="UI.openPanel('penthouse')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #f1c40f, #d4ac0d);">👑</div>
@@ -147,6 +163,7 @@ const UI = {
             
             <div class="action-grid start-menu-actions">
                 <button class="btn btn-massive btn-play" onclick="App.navigate('careers')"><span class="btn-icon">▶️</span> ${t('play')}</button>
+                <button class="btn btn-massive" style="background:linear-gradient(135deg, #2980b9, #3498db); color:white; box-shadow: 0 6px 0px #1f618d, 0 15px 25px rgba(52,152,219,0.4);" onclick="UI.showWalkthroughModal()"><span class="btn-icon">📖</span> ${t('walkthroughBtn')}</button>
                 <button class="btn btn-massive btn-settings" onclick="App.navigate('settings')"><span class="btn-icon">⚙️</span> ${t('settings')}</button>
             </div>
             <div class="version-text">v1.7.0 • Premium OS Edition</div>
@@ -284,6 +301,31 @@ const UI = {
             let tBar = document.getElementById('trend-bar');
             if(g.trendDaysLeft > 0 && g.trendActive) { tBar.style.display = 'flex'; document.getElementById('s-trend').innerText = g.trendActive.name; document.getElementById('s-trend-days').innerText = g.trendDaysLeft; } 
             else tBar.style.display = 'none';
+
+            let apBtn = document.getElementById('header-autopilot-btn');
+            if (apBtn) {
+                if (typeof Engine !== 'undefined' && Engine.isAutoPilot) {
+                    apBtn.innerText = `🤖 ${t('autopilotActive')}`;
+                    apBtn.classList.add('pulse-active');
+                    apBtn.style.background = 'var(--danger)';
+                    apBtn.style.color = '#fff';
+                    apBtn.style.borderColor = 'var(--danger)';
+                } else {
+                    apBtn.innerText = `🤖 ${t('autopilotBtn')}`;
+                    apBtn.classList.remove('pulse-active');
+                    apBtn.style.background = 'rgba(155,89,182,0.1)';
+                    apBtn.style.color = '#8e44ad';
+                    apBtn.style.borderColor = '#9b59b6';
+                }
+            }
+            let mcApTitle = document.getElementById('mc-autopilot-title');
+            let mcApIcon = document.getElementById('mc-autopilot-icon');
+            if (mcApTitle && typeof Engine !== 'undefined') {
+                mcApTitle.innerText = Engine.isAutoPilot ? t('autopilotActive') : t('autopilotBtn');
+            }
+            if (mcApIcon && typeof Engine !== 'undefined') {
+                mcApIcon.innerText = Engine.isAutoPilot ? '⏹️' : '▶';
+            }
 
             if (UI.currentTab === 'tab-shop') UI.renderShopTab();
             if (UI.currentTab === 'tab-inv') UI.renderInvTab();
@@ -1176,6 +1218,14 @@ const UI = {
         `;
 
         App.showModal(t('endDayReportTitle'), content, `<button class="btn btn-primary" onclick="App.closeModal()">${t('endDayConfirmBtn')}</button>`);
+
+        if (typeof Engine !== 'undefined' && Engine.isAutoPilot) {
+            setTimeout(() => {
+                if (typeof Engine !== 'undefined' && Engine.isAutoPilot) {
+                    App.closeModal();
+                }
+            }, 600);
+        }
     },
 
     switchEndDayTab: (tabKey) => {
@@ -1185,6 +1235,190 @@ const UI = {
 
         let btn = document.getElementById('tab-btn-' + tabKey);
         let view = document.getElementById('tab-view-' + tabKey);
+        if (btn) btn.classList.add('active');
+        if (view) view.classList.add('active');
+    },
+
+    showWalkthroughModal: () => {
+        if (typeof AudioSys !== 'undefined') AudioSys.tap();
+        let isTr = App.state.lang === 'tr';
+
+        let html = `
+            <div class="wt-tabs">
+                <button class="wt-tab active" id="wt-btn-l1-3" onclick="UI.switchWalkthroughTab('l1-3')">Lv 1-3: ${isTr ? 'Başlangıç' : 'Basics'}</button>
+                <button class="wt-tab" id="wt-btn-l4-6" onclick="UI.switchWalkthroughTab('l4-6')">Lv 4-6: ${isTr ? 'Borsa & Süper' : 'Stocks & Super'}</button>
+                <button class="wt-tab" id="wt-btn-l7-8" onclick="UI.switchWalkthroughTab('l7-8')">Lv 7-8: ${isTr ? 'Fabrika & AVM' : 'Factory & Mall'}</button>
+                <button class="wt-tab" id="wt-btn-l9-10" onclick="UI.switchWalkthroughTab('l9-10')">Lv 9-10: 🏆 ${isTr ? 'BÜYÜK FİNAL' : 'GRAND FINALE'}</button>
+                <button class="wt-tab" id="wt-btn-tips" onclick="UI.switchWalkthroughTab('tips')">⚡ ${isTr ? 'Altın Taktikler' : 'Pro Tips'}</button>
+            </div>
+
+            <!-- TAB 1: Level 1-3 -->
+            <div class="wt-content active" id="wt-view-l1-3">
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🏪 Level 1: ${isTr ? 'Mahalle Bakkalı' : 'Corner Grocery'}</span>
+                        <span class="wt-badge" style="background:#2ecc71; color:white;">Lv 1</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 10 ${isTr ? 'Elma sat' : 'Apples sold'} ➔ ${isTr ? 'Ekmek reyonunu kur ($300)' : 'Build Bread aisle ($300)'} ➔ ${isTr ? '$2.000 nakite ulaş' : 'Reach $2,000 cash'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Dükkan sekmesinden 10-20 adet elma al. Fiyatları varsayılanda tut. Ekmek reyonu açılınca hemen ekmek stoğu yap ve görev ödüllerini topla.' : 'Buy 10-20 apples. Keep default pricing. Unlock Bread aisle ASAP and claim quest cash rewards.'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🛒 Level 2: ${isTr ? 'Mini Market & İlk Personel' : 'Mini Mart & First Staff'}</span>
+                        <span class="wt-badge" style="background:#3498db; color:white;">Lv 2</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kasiyer işe al' : 'Hire Cashier'} ➔ ${isTr ? 'Süt reyonunu kur ($600)' : 'Build Milk aisle ($600)'} ➔ ${isTr ? 'Depo Alanı I al ($1.200)' : 'Upgrade Storage I ($1,200)'} ➔ ${isTr ? 'SGK Sigortasını AÇ!' : 'Enable Staff Insurance!'}<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kasiyer olmadan müşteriler hırsızlık yapar. Personel sekmesinden SGK Sigortası butonunu açık tut, çalışanların istifasını ve tazminat cezalarını engelle.' : 'Without a Cashier, customers steal and walk out. Turn Staff Insurance ON in Staff tab to prevent resignations and penalties.'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🚚 Level 3: ${isTr ? 'Market & Filo / Vakıf' : 'Market & Cargo / NGO'}</span>
+                        <span class="wt-badge" style="background:#9b59b6; color:white;">Lv 3</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kamyonet satın al ($3.500)' : 'Buy Truck ($3,500)'} ➔ ${isTr ? 'Tişört reyonunu kur ($1.200)' : 'Build T-Shirt aisle ($1,200)'} ➔ ${isTr ? 'Vakıflara en az 1 bağış yap' : 'Donate to an NGO at least once'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kargo sekmesinden Kamyonet alarak taşıma kapasiteni 150 birime çıkar. Vakıf bağışı kurumsal itibarını ve patron moralini yükseltir.' : 'Buy a Truck from Cargo tab to raise shipping capacity to 150. Foundation donations increase your corporate reputation and morale.'}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Level 4-6 -->
+            <div class="wt-content" id="wt-view-l4-6">
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🏬 Level 4: ${isTr ? 'Büyük Market & Altın Borsası' : 'Large Mart & Gold Stocks'}</span>
+                        <span class="wt-badge" style="background:#f39c12; color:white;">Lv 4</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Ayakkabı reyonunu kur ($2.500)' : 'Build Shoes aisle ($2,500)'} ➔ ${isTr ? '10 lot Altın al' : 'Buy 10 lots of Gold'} ➔ 1 ${isTr ? 'Güvenlik Görevlisi işe al' : 'Hire Guard'} ➔ ${isTr ? 'Kozmetik reyonunu kur ($5.000)' : 'Build Cosmetics aisle ($5,000)'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Finans sekmesinden Altın alarak paranı güvenceye al. Güvenlik personeli mağaza asayişini sağlar.' : 'Buy Gold in Finance tab to preserve wealth. Guards safeguard your store against theft.'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>📱 Level 5: ${isTr ? 'Süpermarket Adayı & B2B Toptan' : 'Supermart Candidate & B2B'}</span>
+                        <span class="wt-badge" style="background:#e67e22; color:white;">Lv 5</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Akıllı Telefon reyonu ($12.000)' : 'Smartphone aisle ($12,000)'} ➔ 1 ${isTr ? 'B2B toptan sözleşmesi tamamla' : 'Complete 1 B2B contract'} ➔ ${isTr ? '$50.000 nakit biriktir' : 'Reach $50,000 cash'} ➔ ${isTr ? 'Oyuncak reyonunu kur ($10.000)' : 'Build Toys aisle ($10,000)'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'B2B sekmesindeki kurumsal siparişleri tamamla. Tek seferde $20.000 - $40.000 toplu nakit kasana girer!' : 'Fulfill B2B wholesale deals for huge $20,000-$40,000 instant cash injections!'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🏢 Level 6: ${isTr ? 'Süpermarket & Eczane' : 'Supermarket & Pharmacy'}</span>
+                        <span class="wt-badge" style="background:#e74c3c; color:white;">Lv 6</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Binayı Süpermarkete yükselt ($75.000)' : 'Upgrade Building to Supermarket ($75,000)'} ➔ ${isTr ? 'İlaç/Eczane reyonunu kur ($20.000)' : 'Build Pharmacy aisle ($20,000)'} ➔ 1 ${isTr ? 'Vakfı Seviye 3 yap' : 'Upgrade 1 Foundation to Lv 3'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Yükseltmeler sekmesinden binanı seviye 2 yap. Personel kapasiten 40 kişiye fırlar ve müşteri akını başlar.' : 'Building upgrade boosts staff cap to 40 and substantially increases daily foot traffic.'}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Level 7-8 -->
+            <div class="wt-content" id="wt-view-l7-8">
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🏭 Level 7: ${isTr ? 'Hipermarket & Fabrika / Avukat' : 'Hypermarket & Factory / Lawyer'}</span>
+                        <span class="wt-badge" style="background:#8e44ad; color:white;">Lv 7</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Fabrikayı satın al ($50.000)' : 'Purchase Factory ($50,000)'} ➔ ${isTr ? '2. Seviye Şirket Avukatı tut' : 'Hire Level 2 Corporate Lawyer'} ➔ 50 ${isTr ? 'İtibara ulaş' : 'Corporate Reputation'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Fabrika kendi mallarını üretir, toptancı maliyetlerini sıfırlar! Avukat ise davaları zarlarla kazanıp karşı taraftan tazminat toplar.' : 'Factory produces goods for free. Level 2 lawyer wins lawsuits with dice advantage.'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>🏎️ Level 8: ${isTr ? 'Mega AVM & Lüks Ürünler' : 'Mega Mall & Luxury Goods'}</span>
+                        <span class="wt-badge" style="background:#16a085; color:white;">Lv 8</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Mega AVM seviyesine geç ($400.000)' : 'Upgrade to Mega Mall ($400,000)'} ➔ ${isTr ? 'Spor Araba reyonu ($100.000)' : 'Build Sports Car aisle ($100,000)'} ➔ ${isTr ? 'Mobilya reyonu ($35.000)' : 'Build Furniture aisle ($35,000)'} ➔ ${isTr ? 'Yeşil Doğa Vakfını Lv 5 yap' : 'Green NGO to Lv 5'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Spor araba satışı başına binlerce dolar net kar bırakır. Günlük net karın $50.000 üzerine çıkabilir!' : 'Sports cars deliver insane profit margins. Your daily profit can easily exceed $50,000!'}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: Level 9-10 Grand Finale -->
+            <div class="wt-content" id="wt-view-l9-10">
+                <div class="wt-step-card">
+                    <div class="wt-step-title">
+                        <span>✈️ Level 9: ${isTr ? 'Holding Plaza & Pazar Hakimiyeti' : 'Holding Plaza & Market Hegemony'}</span>
+                        <span class="wt-badge" style="background:#2c3e50; color:white;">Lv 9</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kargo Uçağı satın al ($50.000)' : 'Buy Cargo Plane ($50,000)'} ➔ %80 ${isTr ? 'Pazar Payına ulaş' : 'Market Share'} ➔ $300.000 ${isTr ? 'nakit topla' : 'cash'} ➔ ${isTr ? 'Holding Plaza seviyesine geç ($1.000.000)' : 'Upgrade to Plaza ($1,000,000)'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kargo uçağı taşıma sınırlarını kaldırır. Rakip HyperMart pazar payını eritmek için AR-GE ve ajanlık operasyonlarını aralıksız sürdür.' : 'Cargo plane removes shipping bottlenecks. Run R&D and espionage sabotage to crush HyperMart share.'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card" style="border: 2px solid #f1c40f; background: linear-gradient(135deg, rgba(241,196,15,0.1), rgba(243,156,18,0.15));">
+                    <div class="wt-step-title">
+                        <span style="color:#d35400;">👑 Level 10: ${isTr ? 'PERAKENDE İMPARATORU (OYUNU BİTİRME)' : 'RETAIL EMPEROR (BEATING THE GAME)'}</span>
+                        <span class="wt-badge" style="background:#f1c40f; color:#2c3e50;">FINALE</span>
+                    </div>
+                    <div class="wt-step-body">
+                        <b>🎯 ${isTr ? 'BÜYÜK HEDEFLER' : 'FINAL GOALS'}:</b><br>
+                        1. 👑 <b>${isTr ? 'HyperMart Devralması' : 'HyperMart Buyout'}:</b> ${isTr ? 'Penthouse sekmesine girip ezeli rakip HyperMart\'ı 1.000.000$ ve %99 pazar payı ile satın al!' : 'Go to Penthouse panel and buy out rival HyperMart for $1M cash + 99% market share!'}<br>
+                        2. 🤝 <b>${isTr ? 'Vakıf Zirvesi' : 'Foundation Summit'}:</b> ${isTr ? 'Tüm vakıfların toplam seviyesini 20 yap.' : 'Reach 20 total foundation levels.'}<br>
+                        3. 💰 <b>${isTr ? 'Büyük Servet' : 'Ultimate Wealth'}:</b> 50 ${isTr ? 'lot Altın ve $2.000.000 nakit biriktir.' : 'lots of Gold and $2,000,000 cash.'}<br>
+                        <b>🏆 ${isTr ? 'SONUÇ' : 'VICTORY'}:</b> ${isTr ? 'HyperMart iflas eder, bayrağı indirir ve tüm perakende sektörünün tek lideri olursun!' : 'HyperMart goes bankrupt and surrenders, crowning you the undisputed Retail Emperor!'}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: Pro Tips & Tricks -->
+            <div class="wt-content" id="wt-view-tips">
+                <div class="wt-step-card">
+                    <div class="wt-step-title"><span style="color:#27ae60;">⚡ ${isTr ? 'Kasa Rush Mini-Oyunu (Sonsuz Nakit)' : 'Cashier Rush (Instant Cash)'}</span></div>
+                    <div class="wt-step-body">
+                        ${isTr ? 'Nakite sıkıştığında veya batmak üzereyken Dükkan sekmesindeki "Kasa Rush" butonuna tıkla. 15 saniyede barkodları okutarak sıfır maliyetle binlerce dolar nakit kazanabilirsin!' : 'Whenever cash is low, open Shop tab and tap "Cashier Rush". Scan items in 15s to earn thousands in pure profit!'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title"><span style="color:#e74c3c;">🛡️ ${isTr ? 'SGK Çalışan Sigortası Hayatidir' : 'Staff Insurance is Critical'}</span></div>
+                    <div class="wt-step-body">
+                        ${isTr ? 'Personel sekmesindeki Sigorta (SGK) butonunu daima AÇIK tut. Kapatırsan çalışanlar topluca istifa eder, tazminat davaları açılır ve binlerce dolar ceza ödersin.' : 'Keep Staff Insurance ON in Staff tab at all times. Disabling it triggers mass strikes and crippling legal fines.'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title"><span style="color:#8e44ad;">🤖 ${isTr ? 'Yapay Zeka Oto-Pilot Bot Modu' : 'AI Auto-Pilot Bot Mode'}</span></div>
+                    <div class="wt-step-body">
+                        ${isTr ? 'Ekranın üstündeki "🤖 Oto-Pilot" butonuna tıkla! Sen arkana yaslanırken yapay zeka senin yerine dükkanı yönetir: akıllıca stok alır, görev ödüllerini toplar, filoyu ve binayı büyütür, günleri ilerletir!' : 'Click "🤖 Auto-Pilot" on top of the screen! Sit back while AI smartly buys stock, claims quest rewards, upgrades fleet and buildings, and loops days!'}
+                    </div>
+                </div>
+
+                <div class="wt-step-card">
+                    <div class="wt-step-title"><span style="color:#f39c12;">😎 ${isTr ? 'Patron Morali & Penthouse' : 'Boss Morale & Penthouse'}</span></div>
+                    <div class="wt-step-body">
+                        ${isTr ? 'Patron moralini %50 altına düşürme. Penthouse\'dan tatillere çıkıp partiler vererek morali yüksek tut; yüksek moral satışlarını ve gelirini %30 artırır.' : 'Keep Boss Morale above 50%. Go on vacations or throw parties in Penthouse for a +30% revenue boost.'}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        App.showModal(`📖 ${isTr ? 'Oyunu Bitirme Kılavuzu (Level 1-10)' : 'Game Completion Guide (Level 1-10)'}`, html, `<button class="btn btn-primary" onclick="App.closeModal()">${t('done')}</button>`);
+    },
+
+    switchWalkthroughTab: (tabKey) => {
+        if (typeof AudioSys !== 'undefined') AudioSys.tap();
+        document.querySelectorAll('.wt-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.wt-content').forEach(c => c.classList.remove('active'));
+
+        let btn = document.getElementById('wt-btn-' + tabKey);
+        let view = document.getElementById('wt-view-' + tabKey);
         if (btn) btn.classList.add('active');
         if (view) view.classList.add('active');
     }

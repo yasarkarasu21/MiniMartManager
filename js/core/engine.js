@@ -1700,5 +1700,144 @@ const Engine = {
         setTimeout(() => AudioSys.cash(), 400);
         UI.showEndDayModal();
         UI.update();
+    },
+
+    isAutoPilot: false,
+    autoPilotTimer: null,
+    toggleAutoPilot: () => {
+        Engine.isAutoPilot = !Engine.isAutoPilot;
+        if (Engine.isAutoPilot) {
+            if (typeof AudioSys !== 'undefined') AudioSys.success();
+            App.showNotify(t('autopilotStarted'), 'success');
+            Engine.runAutoPilotStep();
+        } else {
+            if (Engine.autoPilotTimer) {
+                clearTimeout(Engine.autoPilotTimer);
+                Engine.autoPilotTimer = null;
+            }
+            if (typeof AudioSys !== 'undefined') AudioSys.tap();
+            App.showNotify(t('autopilotStopped'));
+        }
+        UI.update();
+    },
+
+    runAutoPilotStep: () => {
+        if (!Engine.isAutoPilot) return;
+        let g = App.state.g;
+        if (!g) return;
+
+        // Auto close modals if open
+        let modalEl = document.getElementById('modal-overlay');
+        if (modalEl && !modalEl.classList.contains('hidden')) {
+            App.closeModal();
+        }
+
+        // 1. Claim all completed quests
+        if (g.quests) {
+            for (let qId in g.quests) {
+                if (g.quests[qId].done && !g.quests[qId].claimed) {
+                    Engine.claimQuest(qId);
+                    break;
+                }
+            }
+        }
+
+        // 2. Resolve court lawsuit if pending
+        if (g.lawsuits && g.lawsuits.length > 0) {
+            Engine.rollLawsuitDice(0);
+        }
+
+        // 3. Emergency loan if bankrupt
+        if (g.money < 500 && (!g.activeLoans || g.activeLoans.length === 0)) {
+            Engine.takeLoanPackage(5000, 5500, 10, App.state.lang === 'en' ? 'Emergency Cash' : 'Acil Nakit');
+        }
+
+        // 4. Staff protection (SGK)
+        if (!g.staffInsurance && g.money > 300) {
+            Engine.toggleStaffInsurance();
+        }
+
+        // 5. Hire essential staff: 1 cashier, 1 janitor, 1 guard if affordable
+        if ((!g.staff || !g.staff.cashier) && g.money >= 300) {
+            Engine.hireStaff('cashier');
+        } else if ((!g.staff || !g.staff.janitor) && g.money >= 250) {
+            Engine.hireStaff('janitor');
+        } else if ((!g.staff || !g.staff.guard) && g.money >= 500 && g.buildingLevel >= 2) {
+            Engine.hireStaff('guard');
+        }
+
+        // 6. Upgrades check
+        if (!g.upgrades || !g.upgrades.storage2) {
+            if (g.money >= 1800) Engine.buyStorage('storage2');
+        } else if (!g.upgrades.storage3 && g.money >= 6000) {
+            Engine.buyStorage('storage3');
+        }
+
+        // Fleet check
+        let totalFleet = ((g.fleet && g.fleet.van ? g.fleet.van.count : 0) || 0) + ((g.fleet && g.fleet.truck ? g.fleet.truck.count : 0) || 0);
+        if (totalFleet < 2 && g.money >= 3500) {
+            Engine.buyVehicle('truck');
+        }
+
+        // 7. Building upgrades if wealthy
+        let nextB = g.buildingLevel + 1;
+        if (GameData.buildings && GameData.buildings[nextB] && g.money >= GameData.buildings[nextB].cost + 15000) {
+            Engine.upgradeBuilding();
+        }
+
+        // 8. Unlock locked products in order
+        if (GameData.products) {
+            for (let pId in GameData.products) {
+                let p = GameData.products[pId];
+                if (!g.unlocked[pId] && g.buildingLevel >= (p.reqBuilding || 1) && g.money >= p.unlock + 1500) {
+                    Engine.unlockDept(pId);
+                    break;
+                }
+            }
+        }
+
+        // 9. Factory acquisition if wealthy
+        if ((!g.factory || !g.factory.owned) && g.money >= 75000) {
+            Engine.buyFactory();
+            Engine.setFactoryItem('apple');
+        }
+
+        // 10. Buyout Rival (Victory condition!)
+        if (g.money >= 1000000 && g.marketShare >= 99 && !g.rivalDefeated) {
+            Engine.buyoutRival();
+        }
+
+        // 11. Espionage if rival is still alive and we have cash
+        if (!g.rivalDefeated && g.money >= 45000 && (!g.espionageActive)) {
+            Engine.startEspionage('headhunt');
+        }
+
+        // 12. Buy wholesale stock if warehouse is empty
+        if (GameData.products) {
+            let availableUnlocked = Object.keys(GameData.products).filter(k => g.unlocked[k]);
+            let storageRoom = g.storageCapacity - g.currentStorage;
+            if (storageRoom > 20) {
+                for (let pId of availableUnlocked) {
+                    let p = GameData.products[pId];
+                    let currentCount = g.inventory[pId] || 0;
+                    if (currentCount < 25 && g.money >= (p.buy * 15) + 800) {
+                        let qty = Math.min(20, Math.floor(storageRoom / p.space));
+                        if (qty > 0) {
+                            Engine.buyProduct(pId, qty);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 13. End day to advance turn
+        Engine.endDay();
+
+        if (Engine.isAutoPilot) {
+            Engine.autoPilotTimer = setTimeout(() => {
+                Engine.runAutoPilotStep();
+            }, 1200);
+        }
     }
 };

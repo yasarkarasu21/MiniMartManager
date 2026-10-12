@@ -307,7 +307,14 @@ const locales = {
         diceLose: "💥 KAYBETTİN!",
         diceTie: "🤝 BERABERE!",
         buildingUpgraded: "🏢 Yeni dükkanına geçtin!",
-        allQuestsDone: "🏆 TÜM GÖREVLER TAMAMLANDI!"
+        allQuestsDone: "🏆 TÜM GÖREVLER TAMAMLANDI!",
+        walkthroughTitle: "📖 Oyunu Bitirme Kılavuzu",
+        walkthroughBtn: "📖 Bitirme Kılavuzu",
+        autopilotBtn: "🤖 Oto-Pilot (Bot Oynasın)",
+        autopilotActive: "🤖 OTO-PİLOT AKTİF",
+        autopilotStop: "Durdur ⏹️",
+        autopilotStarted: "🤖 Oto-Pilot devreye girdi! Oyun otomatik oynanıyor.",
+        autopilotStopped: "⏹️ Oto-Pilot durduruldu."
     },
 
     en: {
@@ -618,7 +625,14 @@ const locales = {
         diceLose: "💥 YOU LOST!",
         diceTie: "🤝 IT'S A TIE!",
         buildingUpgraded: "🏢 Relocated to new premises!",
-        allQuestsDone: "🏆 ALL QUESTS COMPLETED!"
+        allQuestsDone: "🏆 ALL QUESTS COMPLETED!",
+        walkthroughTitle: "📖 Game Completion Walkthrough",
+        walkthroughBtn: "📖 Walkthrough Guide",
+        autopilotBtn: "🤖 Auto-Pilot (Let Bot Play)",
+        autopilotActive: "🤖 AUTO-PILOT ACTIVE",
+        autopilotStop: "Stop ⏹️",
+        autopilotStarted: "🤖 Auto-Pilot engaged! The game is playing automatically.",
+        autopilotStopped: "⏹️ Auto-Pilot stopped."
     }
 };
 
