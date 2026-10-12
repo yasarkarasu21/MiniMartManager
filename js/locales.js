@@ -261,7 +261,7 @@ const locales = {
         espionageTitle: "🕵️‍♂️ Kurumsal Casusluk & İstihbarat",
         espionageSub: "Rakip HyperMart'a gizli operasyonlar düzenle, pazar paylarını ele geçir!",
         cashierRushTitle: "⚡ Kasa Rush Mini-Oyunu",
-        cashierRushSub: "Kasiyerin yerine geç, müşterilerin barkodlarını jet gibi okut ve bonus nakit kap!",
+        cashierRushSub: "Kasiyerin yerine geç, müşterilerin barkodlarını jet gibi okut, patron moralini ve müşteri memnuniyetini tavan yaptır!",
         cashierRushBtn: "⚡ Kasa Başına Geç!",
 
         // Bildirimler & Ekstra
@@ -579,7 +579,7 @@ const locales = {
         espionageTitle: "🕵️‍♂️ Corporate Espionage Bureau",
         espionageSub: "Infiltrate HyperMart with undercover agents to steal price lists and sabotage rivals!",
         cashierRushTitle: "⚡ Cashier Rush Minigame",
-        cashierRushSub: "Step behind the register, scan barcodes in rapid succession, and score quick cash & morale!",
+        cashierRushSub: "Step behind the register, scan barcodes in rapid succession, and boost executive morale & customer satisfaction!",
         cashierRushBtn: "⚡ Take the Register!",
 
         // Notifications & Extras

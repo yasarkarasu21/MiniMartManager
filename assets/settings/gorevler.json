@@ -1,43 +1,43 @@
 {
   "levels": {
-    "1": { "name": "Mahalle Bakkalı", "desc": "Ticarete ilk adımı at ve temel ihtiyaçları karşıla." },
-    "2": { "name": "Gelişen Esnaf", "desc": "İlk personelini al ve dükkanını büyüt." },
-    "3": { "name": "Lojistik Ağı", "desc": "Kendi araç filonu kur ve toptancı ağını güçlendir." },
-    "4": { "name": "Borsa & Yatırım", "desc": "Finans dünyasına adım at ve kurumsal itibar kazan." },
+    "1": { "name": "Mahalle Bakkalı", "desc": "Ticarete ilk adımı at, elma ve ekmek satarak müşteri kazan." },
+    "2": { "name": "Gelişen Esnaf", "desc": "İlk personelini al, şarküteri aç ve dükkanını büyüt." },
+    "3": { "name": "Lojistik Ağı", "desc": "Kendi araç filonu kur, giyim sat ve hayırseverlik yap." },
+    "4": { "name": "Borsa & Yatırım", "desc": "Finans dünyasına adım at, altın topla ve güvenlik sağla." },
     "5": { "name": "Teknoloji & İhale", "desc": "Büyük B2B sözleşmelerine imza at ve teknoloji sat." },
     "6": { "name": "Süpermarket Zinciri", "desc": "Devasa Süpermarket açılışı yap ve sağlık sektörüne gir." },
     "7": { "name": "Üretim Holdingi", "desc": "Kendi fabrikanı kur ve toptancıyı devreden çıkar." },
-    "8": { "name": "Mega AVM", "desc": "Şehrin en gözde alışveriş merkezini inşa et." },
-    "9": { "name": "Piyasa Tekeli", "desc": "Rakiplerini köşeye sıkıştır ve pazar payını %90'a çıkar." },
+    "8": { "name": "Mega AVM", "desc": "Şehrin en gözde alışveriş merkezini inşa et ve lüks ürün sat." },
+    "9": { "name": "Piyasa Tekeli", "desc": "Rakiplerini köşeye sıkıştır ve pazar payını %80'e çıkar." },
     "10": { "name": "Dünya Tekeli", "desc": "HyperMart'ı satın alarak piyasanın mutlak hakimi ol!" }
   },
   "quests": {
     "l1_q1": {
       "level": 1,
-      "title": "İlk Sevkiyat",
-      "desc": "Toptancıdan 10 adet Elma siparişi ver.",
+      "title": "İlk Satışlar",
+      "desc": "Müşterilere toplamda en az 15 adet Elma sat.",
       "prereqQuests": [],
       "reqBuild": 1,
-      "condition": { "type": "inventory", "param": "apple", "value": 10 },
-      "reward": { "money": 500, "rp": 10, "rep": 1 }
+      "condition": { "type": "sold", "param": "apple", "value": 15 },
+      "reward": { "money": 300, "rp": 10, "rep": 1 }
     },
     "l1_q2": {
       "level": 1,
-      "title": "Fırın Reyonu",
-      "desc": "Dükkanına Ekmek reyonu kur.",
+      "title": "Fırın Satışları",
+      "desc": "Ekmek reyonunu kur ve en az 10 adet Ekmek sat.",
       "prereqQuests": ["l1_q1"],
       "reqBuild": 1,
-      "condition": { "type": "unlocked", "param": "bread", "value": true },
-      "reward": { "money": 750, "rp": 15, "rep": 2 }
+      "condition": { "type": "sold", "param": "bread", "value": 10 },
+      "reward": { "money": 450, "rp": 15, "rep": 2 }
     },
     "l1_q3": {
       "level": 1,
-      "title": "İlk Gün Sonu",
-      "desc": "Satışlarını tamamla ve $2,000 nakde ulaş.",
+      "title": "İlk Ticari Başarı",
+      "desc": "Kasanda en az $2,500 nakit biriktir ve en az 3 iş günü tamamla.",
       "prereqQuests": ["l1_q2"],
       "reqBuild": 1,
-      "condition": { "type": "money", "value": 2000 },
-      "reward": { "money": 1000, "rp": 20, "rep": 2 }
+      "condition": { "type": "days", "value": 3 },
+      "reward": { "money": 600, "rp": 20, "rep": 2 }
     },
 
     "l2_q1": {
@@ -47,16 +47,16 @@
       "prereqQuests": ["l1_q3"],
       "reqBuild": 1,
       "condition": { "type": "staff", "param": "cashier", "value": 1 },
-      "reward": { "money": 800, "rp": 15, "rep": 2 }
+      "reward": { "money": 500, "rp": 15, "rep": 2 }
     },
     "l2_q2": {
       "level": 2,
-      "title": "Şarküteri Reyonu",
-      "desc": "Müşteriler için Süt reyonu aç.",
+      "title": "Şarküteri Satışları",
+      "desc": "Süt reyonu aç ve en az 15 adet Süt sat.",
       "prereqQuests": ["l2_q1"],
       "reqBuild": 1,
-      "condition": { "type": "unlocked", "param": "milk", "value": true },
-      "reward": { "money": 1200, "rp": 20, "rep": 3 }
+      "condition": { "type": "sold", "param": "milk", "value": 15 },
+      "reward": { "money": 750, "rp": 20, "rep": 3 }
     },
     "l2_q3": {
       "level": 2,
@@ -65,109 +65,109 @@
       "prereqQuests": ["l2_q2"],
       "reqBuild": 1,
       "condition": { "type": "upgrade", "param": "storage2", "value": true },
-      "reward": { "money": 1500, "rp": 25, "rep": 3 }
+      "reward": { "money": 900, "rp": 25, "rep": 3 }
     },
     "l2_q4": {
       "level": 2,
-      "title": "Personel Güvencesi",
-      "desc": "Personel İstifalarını önlemek için SGK / Personel Sigortasını aç.",
+      "title": "Sosyal Güvenlik & İstikrar",
+      "desc": "Personel İstifalarını önlemek için SGK Sigortasını aç ve en az 6 gün dükkanı açık tut.",
       "prereqQuests": ["l2_q3"],
       "reqBuild": 1,
-      "condition": { "type": "staffInsurance", "value": true },
-      "reward": { "money": 1800, "rp": 20, "rep": 3 }
+      "condition": { "type": "days", "value": 6 },
+      "reward": { "money": 1000, "rp": 20, "rep": 3 }
     },
 
     "l3_q1": {
       "level": 3,
-      "title": "Lojistik Devrimi",
-      "desc": "Filoya 1 adet Kamyon satın al.",
+      "title": "Lojistik Filo",
+      "desc": "Nakliye kapasiteni artırmak için 1 adet Kamyon satın al.",
       "prereqQuests": ["l2_q4"],
       "reqBuild": 1,
       "condition": { "type": "fleet", "param": "truck", "value": 1 },
-      "reward": { "money": 2500, "rp": 30, "rep": 4 }
+      "reward": { "money": 1500, "rp": 30, "rep": 4 }
     },
     "l3_q2": {
       "level": 3,
-      "title": "Giyim Reyonu",
-      "desc": "T-Shirt reyonu açarak tekstil sektörüne adım at.",
+      "title": "Giyim Satışları",
+      "desc": "T-Shirt reyonu açarak en az 20 adet T-Shirt sat.",
       "prereqQuests": ["l3_q1"],
       "reqBuild": 1,
-      "condition": { "type": "unlocked", "param": "tshirt", "value": true },
-      "reward": { "money": 2000, "rp": 25, "rep": 3 }
+      "condition": { "type": "sold", "param": "tshirt", "value": 20 },
+      "reward": { "money": 1200, "rp": 25, "rep": 3 }
     },
     "l3_q3": {
       "level": 3,
       "title": "Hayırsever İş İnsanı",
-      "desc": "Herhangi bir vakfa ilk bağışını yap.",
+      "desc": "Vakıflara bağış yap ve Kurumsal İtibarını (REP) en az 5'e yükselt.",
       "prereqQuests": ["l3_q2"],
       "reqBuild": 1,
-      "condition": { "type": "foundation", "value": 1 },
-      "reward": { "money": 3000, "rp": 35, "rep": 5 }
+      "condition": { "type": "rep", "value": 5 },
+      "reward": { "money": 1800, "rp": 35, "rep": 5 }
     },
 
     "l4_q1": {
       "level": 4,
-      "title": "Moda & Ayakkabı",
-      "desc": "Ayakkabı reyonunu kur.",
+      "title": "Moda & Ayakkabı Satışları",
+      "desc": "Ayakkabı reyonunu kur ve en az 15 adet Ayakkabı sat.",
       "prereqQuests": ["l3_q3"],
       "reqBuild": 1,
-      "condition": { "type": "unlocked", "param": "shoes", "value": true },
-      "reward": { "money": 3500, "rp": 30, "rep": 4 }
+      "condition": { "type": "sold", "param": "shoes", "value": 15 },
+      "reward": { "money": 2000, "rp": 30, "rep": 4 }
     },
     "l4_q2": {
       "level": 4,
       "title": "Borsa Kurdu",
-      "desc": "Borsadan en az 10 Lot Altın satın al.",
+      "desc": "Borsadan en az 10 Lot Altın satın alarak finansal rezerv yap.",
       "prereqQuests": ["l4_q1"],
       "reqBuild": 1,
       "condition": { "type": "stock", "param": "gold", "value": 10 },
-      "reward": { "money": 5000, "rp": 40, "rep": 5 }
+      "reward": { "money": 2500, "rp": 40, "rep": 5 }
     },
     "l4_q3": {
       "level": 4,
-      "title": "Mağaza Güvenliği",
+      "title": "Mağaza Asayişi",
       "desc": "Hırsızları önlemek için 1 Güvenlik Görevlisi tut.",
       "prereqQuests": ["l4_q2"],
       "reqBuild": 1,
       "condition": { "type": "staff", "param": "guard", "value": 1 },
-      "reward": { "money": 4000, "rp": 35, "rep": 4 }
+      "reward": { "money": 2000, "rp": 35, "rep": 4 }
     },
     "l4_q4": {
       "level": 4,
-      "title": "Güzellik & Bakım",
-      "desc": "Kozmetik reyonunu açarak ürün yelpazeni genişlet.",
+      "title": "Güzellik & Finans Rezervi",
+      "desc": "Kozmetik reyonunu aç ve kasada en az $15,000 nakit rezervi bulundur.",
       "prereqQuests": ["l4_q3"],
       "reqBuild": 1,
-      "condition": { "type": "unlocked", "param": "cosmetics", "value": true },
-      "reward": { "money": 4500, "rp": 35, "rep": 4 }
+      "condition": { "type": "money", "value": 15000 },
+      "reward": { "money": 3000, "rp": 35, "rep": 4 }
     },
 
     "l5_q1": {
       "level": 5,
-      "title": "Teknoloji Çağı",
-      "desc": "Telefon reyonunu açarak elektroniğe geç.",
+      "title": "Elektronik Satışları",
+      "desc": "Telefon reyonunu aç ve en az 10 adet Akıllı Telefon sat.",
       "prereqQuests": ["l4_q4"],
       "reqBuild": 1,
-      "condition": { "type": "unlocked", "param": "phone", "value": true },
-      "reward": { "money": 6000, "rp": 45, "rep": 6 }
+      "condition": { "type": "sold", "param": "phone", "value": 10 },
+      "reward": { "money": 4000, "rp": 45, "rep": 6 }
     },
     "l5_q2": {
       "level": 5,
-      "title": "İlk Büyük İhale",
-      "desc": "B2B sekmesinden 1 adet sözleşmeyi başarıyla teslim et.",
+      "title": "Kurumsal İhaleler",
+      "desc": "B2B sekmesinden 2 adet toptan sözleşmeyi başarıyla teslim et.",
       "prereqQuests": ["l5_q1"],
       "reqBuild": 1,
-      "condition": { "type": "b2b", "value": 1 },
-      "reward": { "money": 8000, "rp": 50, "rep": 8 }
+      "condition": { "type": "b2b", "value": 2 },
+      "reward": { "money": 5000, "rp": 50, "rep": 8 }
     },
     "l5_q3": {
       "level": 5,
-      "title": "Büyük Sermaye",
-      "desc": "Kasada $50,000 nakit biriktir.",
+      "title": "Büyük Sermaye & Pazar Payı",
+      "desc": "Kasada $50,000 nakit biriktir ve Pazar Payını en az %15 yap.",
       "prereqQuests": ["l5_q2"],
       "reqBuild": 1,
-      "condition": { "type": "money", "value": 50000 },
-      "reward": { "money": 10000, "rp": 60, "rep": 10 }
+      "condition": { "type": "marketShare", "value": 15 },
+      "reward": { "money": 6000, "rp": 60, "rep": 10 }
     },
     "l5_q4": {
       "level": 5,
@@ -176,26 +176,26 @@
       "prereqQuests": ["l5_q3"],
       "reqBuild": 1,
       "condition": { "type": "unlocked", "param": "toys", "value": true },
-      "reward": { "money": 12000, "rp": 65, "rep": 10 }
+      "reward": { "money": 5000, "rp": 65, "rep": 10 }
     },
 
     "l6_q1": {
       "level": 6,
       "title": "Süpermarket Açılışı",
-      "desc": "Bina seviyeni Süpermarket'e (Seviye 2) yükselt.",
+      "desc": "Bina seviyeni Süpermarket'e (Seviye 2, $75,000) yükselt.",
       "prereqQuests": ["l5_q4"],
       "reqBuild": 2,
       "condition": { "type": "buildingLevel", "value": 2 },
-      "reward": { "money": 15000, "rp": 80, "rep": 12 }
+      "reward": { "money": 8000, "rp": 80, "rep": 12 }
     },
     "l6_q2": {
       "level": 6,
-      "title": "Sağlık & Eczane",
-      "desc": "Vitamin & İlaç reyonunu aç.",
+      "title": "Sağlık & Eczane Satışları",
+      "desc": "Vitamin & İlaç reyonunu aç ve en az 20 adet İlaç sat.",
       "prereqQuests": ["l6_q1"],
       "reqBuild": 2,
-      "condition": { "type": "unlocked", "param": "pharmacy", "value": true },
-      "reward": { "money": 12000, "rp": 70, "rep": 10 }
+      "condition": { "type": "sold", "param": "pharmacy", "value": 20 },
+      "reward": { "money": 7000, "rp": 70, "rep": 10 }
     },
     "l6_q3": {
       "level": 6,
@@ -204,17 +204,17 @@
       "prereqQuests": ["l6_q2"],
       "reqBuild": 2,
       "condition": { "type": "foundationLevel", "value": 3 },
-      "reward": { "money": 20000, "rp": 90, "rep": 15 }
+      "reward": { "money": 10000, "rp": 90, "rep": 15 }
     },
 
     "l7_q1": {
       "level": 7,
       "title": "Kendi Fabrikan",
-      "desc": "Toptancıyı aradan çıkarmak için Fabrika satın al.",
+      "desc": "Toptancıyı aradan çıkarmak için Fabrika satın al ($50,000).",
       "prereqQuests": ["l6_q3"],
       "reqBuild": 2,
       "condition": { "type": "factory", "value": true },
-      "reward": { "money": 25000, "rp": 100, "rep": 15 }
+      "reward": { "money": 12000, "rp": 100, "rep": 15 }
     },
     "l7_q2": {
       "level": 7,
@@ -223,7 +223,7 @@
       "prereqQuests": ["l7_q1"],
       "reqBuild": 2,
       "condition": { "type": "lawyer", "value": 2 },
-      "reward": { "money": 15000, "rp": 85, "rep": 10 }
+      "reward": { "money": 8000, "rp": 85, "rep": 10 }
     },
     "l7_q3": {
       "level": 7,
@@ -232,26 +232,26 @@
       "prereqQuests": ["l7_q2"],
       "reqBuild": 2,
       "condition": { "type": "rep", "value": 50 },
-      "reward": { "money": 30000, "rp": 120, "rep": 20 }
+      "reward": { "money": 15000, "rp": 120, "rep": 20 }
     },
 
     "l8_q1": {
       "level": 8,
       "title": "Mega AVM Projesi",
-      "desc": "Bina seviyeni Mega AVM'ye (Seviye 3) yükselt.",
+      "desc": "Bina seviyeni Mega AVM'ye (Seviye 3, $400,000) yükselt.",
       "prereqQuests": ["l7_q3"],
       "reqBuild": 3,
       "condition": { "type": "buildingLevel", "value": 3 },
-      "reward": { "money": 50000, "rp": 150, "rep": 25 }
+      "reward": { "money": 25000, "rp": 150, "rep": 25 }
     },
     "l8_q2": {
       "level": 8,
-      "title": "Lüks Otomobil Galerisi",
-      "desc": "Spor Araba reyonunun kilidini aç.",
+      "title": "Lüks Otomobil Satışı",
+      "desc": "Spor Araba reyonunun kilidini aç ve en az 1 Spor Araba sat.",
       "prereqQuests": ["l8_q1"],
       "reqBuild": 3,
-      "condition": { "type": "unlocked", "param": "car", "value": true },
-      "reward": { "money": 75000, "rp": 200, "rep": 30 }
+      "condition": { "type": "sold", "param": "car", "value": 1 },
+      "reward": { "money": 35000, "rp": 200, "rep": 30 }
     },
     "l8_q3": {
       "level": 8,
@@ -260,7 +260,7 @@
       "prereqQuests": ["l8_q2"],
       "reqBuild": 3,
       "condition": { "type": "unlocked", "param": "furniture", "value": true },
-      "reward": { "money": 60000, "rp": 180, "rep": 25 }
+      "reward": { "money": 30000, "rp": 180, "rep": 25 }
     },
     "l8_q4": {
       "level": 8,
@@ -269,17 +269,17 @@
       "prereqQuests": ["l8_q3"],
       "reqBuild": 3,
       "condition": { "type": "foundationLevel", "value": 5 },
-      "reward": { "money": 80000, "rp": 220, "rep": 35 }
+      "reward": { "money": 40000, "rp": 220, "rep": 35 }
     },
 
     "l9_q1": {
       "level": 9,
       "title": "Gökyüzü Filosu",
-      "desc": "Filoya 1 adet Kargo Uçağı satın al.",
+      "desc": "Filoya 1 adet Kargo Uçağı satın al ($150,000).",
       "prereqQuests": ["l8_q4"],
       "reqBuild": 3,
       "condition": { "type": "fleet", "param": "plane", "value": 1 },
-      "reward": { "money": 100000, "rp": 300, "rep": 40 }
+      "reward": { "money": 50000, "rp": 300, "rep": 40 }
     },
     "l9_q2": {
       "level": 9,
@@ -288,35 +288,35 @@
       "prereqQuests": ["l9_q1"],
       "reqBuild": 3,
       "condition": { "type": "marketShare", "value": 80 },
-      "reward": { "money": 150000, "rp": 350, "rep": 50 }
+      "reward": { "money": 75000, "rp": 350, "rep": 50 }
     },
     "l9_q3": {
       "level": 9,
       "title": "Dev Kasa Birikimi",
-      "desc": "Kasada $300,000 nakit rezervi tut.",
+      "desc": "Kasada $500,000 nakit rezervi tut.",
       "prereqQuests": ["l9_q2"],
       "reqBuild": 3,
-      "condition": { "type": "money", "value": 300000 },
-      "reward": { "money": 120000, "rp": 250, "rep": 35 }
+      "condition": { "type": "money", "value": 500000 },
+      "reward": { "money": 60000, "rp": 250, "rep": 35 }
     },
     "l9_q4": {
       "level": 9,
       "title": "Holding Gökdeleni",
-      "desc": "Bina seviyeni Plaza Seviye 4 veya üzerine yükselt.",
+      "desc": "Bina seviyeni Plaza Seviye 4 veya üzerine yükselt ($1,000,000).",
       "prereqQuests": ["l9_q3"],
       "reqBuild": 4,
       "condition": { "type": "buildingLevel", "value": 4 },
-      "reward": { "money": 180000, "rp": 400, "rep": 50 }
+      "reward": { "money": 90000, "rp": 400, "rep": 50 }
     },
 
     "l10_q1": {
       "level": 10,
       "title": "Mutlak Tekel",
-      "desc": "HyperMart'ı satın alarak rakibini tamamen yok et!",
+      "desc": "HyperMart'ı satın alarak rakibini tamamen yok et! ($1M + %99 Pazar Payı)",
       "prereqQuests": ["l9_q4"],
       "reqBuild": 3,
       "condition": { "type": "rivalDefeated", "value": true },
-      "reward": { "money": 500000, "rp": 1000, "rep": 100 }
+      "reward": { "money": 250000, "rp": 1000, "rep": 100 }
     },
     "l10_q2": {
       "level": 10,
@@ -325,7 +325,7 @@
       "prereqQuests": ["l10_q1"],
       "reqBuild": 3,
       "condition": { "type": "foundation", "value": 20 },
-      "reward": { "money": 300000, "rp": 600, "rep": 60 }
+      "reward": { "money": 150000, "rp": 600, "rep": 60 }
     },
     "l10_q3": {
       "level": 10,
@@ -334,7 +334,7 @@
       "prereqQuests": ["l10_q2"],
       "reqBuild": 3,
       "condition": { "type": "stock", "param": "gold", "value": 50 },
-      "reward": { "money": 400000, "rp": 700, "rep": 70 }
+      "reward": { "money": 200000, "rp": 700, "rep": 70 }
     },
     "l10_q4": {
       "level": 10,
@@ -343,8 +343,7 @@
       "prereqQuests": ["l10_q3"],
       "reqBuild": 4,
       "condition": { "type": "money", "value": 2000000 },
-      "reward": { "money": 1000000, "rp": 2000, "rep": 200 }
+      "reward": { "money": 500000, "rp": 2000, "rep": 200 }
     }
   }
 }
-

@@ -1224,7 +1224,7 @@ const UI = {
                 if (typeof Engine !== 'undefined' && Engine.isAutoPilot) {
                     App.closeModal();
                 }
-            }, 600);
+            }, 2200);
         }
     },
 
@@ -1260,30 +1260,30 @@ const UI = {
                         <span class="wt-badge" style="background:#2ecc71; color:white;">Lv 1</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 10 ${isTr ? 'Elma sat' : 'Apples sold'} ➔ ${isTr ? 'Ekmek reyonunu kur ($300)' : 'Build Bread aisle ($300)'} ➔ ${isTr ? '$2.000 nakite ulaş' : 'Reach $2,000 cash'}.<br>
-                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Dükkan sekmesinden 10-20 adet elma al. Fiyatları varsayılanda tut. Ekmek reyonu açılınca hemen ekmek stoğu yap ve görev ödüllerini topla.' : 'Buy 10-20 apples. Keep default pricing. Unlock Bread aisle ASAP and claim quest cash rewards.'}
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 15 ${isTr ? 'Elma sat' : 'Apples sold'} ➔ ${isTr ? 'Ekmek reyonu kur ve 10 Ekmek sat' : 'Build Bread aisle & sell 10 Bread'} ➔ ${isTr ? '$2.500 nakit ve 3 gün tamamla' : 'Reach $2,500 cash & complete 3 days'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Dükkandan elma ve ekmek alıp rafları doldur. Günleri ilerletip müşterilere sat. Günlük mağaza kirasını ($25) unutma!' : 'Stock apples and bread. Advance days to sell to customers while covering daily store rent ($25).' }
                     </div>
                 </div>
 
                 <div class="wt-step-card">
                     <div class="wt-step-title">
-                        <span>🛒 Level 2: ${isTr ? 'Mini Market & İlk Personel' : 'Mini Mart & First Staff'}</span>
+                        <span>🛒 Level 2: ${isTr ? 'Mini Market & Personel' : 'Mini Mart & Staff'}</span>
                         <span class="wt-badge" style="background:#3498db; color:white;">Lv 2</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kasiyer işe al' : 'Hire Cashier'} ➔ ${isTr ? 'Süt reyonunu kur ($600)' : 'Build Milk aisle ($600)'} ➔ ${isTr ? 'Depo Alanı I al ($1.200)' : 'Upgrade Storage I ($1,200)'} ➔ ${isTr ? 'SGK Sigortasını AÇ!' : 'Enable Staff Insurance!'}<br>
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kasiyer işe al' : 'Hire Cashier'} ➔ ${isTr ? 'Süt reyonu kur ve 15 Süt sat' : 'Build Milk aisle & sell 15 Milk'} ➔ ${isTr ? 'Depo I yükseltmesi al' : 'Upgrade Storage I'} ➔ ${isTr ? 'SGK Sigortasını aç ve 6 gün işlet' : 'Enable Staff Insurance & survive 6 days'}.<br>
                         <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kasiyer olmadan müşteriler hırsızlık yapar. Personel sekmesinden SGK Sigortası butonunu açık tut, çalışanların istifasını ve tazminat cezalarını engelle.' : 'Without a Cashier, customers steal and walk out. Turn Staff Insurance ON in Staff tab to prevent resignations and penalties.'}
                     </div>
                 </div>
 
                 <div class="wt-step-card">
                     <div class="wt-step-title">
-                        <span>🚚 Level 3: ${isTr ? 'Market & Filo / Vakıf' : 'Market & Cargo / NGO'}</span>
+                        <span>🚚 Level 3: ${isTr ? 'Market & Filo / İtibar' : 'Market & Cargo / Reputation'}</span>
                         <span class="wt-badge" style="background:#9b59b6; color:white;">Lv 3</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kamyonet satın al ($3.500)' : 'Buy Truck ($3,500)'} ➔ ${isTr ? 'Tişört reyonunu kur ($1.200)' : 'Build T-Shirt aisle ($1,200)'} ➔ ${isTr ? 'Vakıflara en az 1 bağış yap' : 'Donate to an NGO at least once'}.<br>
-                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kargo sekmesinden Kamyonet alarak taşıma kapasiteni 150 birime çıkar. Vakıf bağışı kurumsal itibarını ve patron moralini yükseltir.' : 'Buy a Truck from Cargo tab to raise shipping capacity to 150. Foundation donations increase your corporate reputation and morale.'}
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kamyon satın al' : 'Buy Truck'} ➔ ${isTr ? 'Tişört reyonu kur ve 20 Tişört sat' : 'Build T-Shirt aisle & sell 20 T-Shirts'} ➔ ${isTr ? 'Vakıf bağışlarıyla İtibarını 5 yap' : 'Reach Corporate Rep 5 with NGO donations'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kamyon sayesinde taşıma kapasiten artar, ürünlerin toptancıda kalmaz. Vakıf bağışları itibarını ve patron moralini yükseltir.' : 'Truck raises logistics cap to ensure shipments arrive safely. Foundation donations build valuable reputation.'}
                     </div>
                 </div>
             </div>
@@ -1296,19 +1296,19 @@ const UI = {
                         <span class="wt-badge" style="background:#f39c12; color:white;">Lv 4</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Ayakkabı reyonunu kur ($2.500)' : 'Build Shoes aisle ($2,500)'} ➔ ${isTr ? '10 lot Altın al' : 'Buy 10 lots of Gold'} ➔ 1 ${isTr ? 'Güvenlik Görevlisi işe al' : 'Hire Guard'} ➔ ${isTr ? 'Kozmetik reyonunu kur ($5.000)' : 'Build Cosmetics aisle ($5,000)'}.<br>
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Ayakkabı reyonu kur ve 15 Ayakkabı sat' : 'Build Shoes aisle & sell 15 Shoes'} ➔ ${isTr ? '10 lot Altın al' : 'Buy 10 lots of Gold'} ➔ 1 ${isTr ? 'Güvenlik Görevlisi tut' : 'Hire Guard'} ➔ ${isTr ? 'Kozmetik aç ve $15.000 nakit biriktir' : 'Build Cosmetics & save $15,000 cash'}.<br>
                         <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Finans sekmesinden Altın alarak paranı güvenceye al. Güvenlik personeli mağaza asayişini sağlar.' : 'Buy Gold in Finance tab to preserve wealth. Guards safeguard your store against theft.'}
                     </div>
                 </div>
 
                 <div class="wt-step-card">
                     <div class="wt-step-title">
-                        <span>📱 Level 5: ${isTr ? 'Süpermarket Adayı & B2B Toptan' : 'Supermart Candidate & B2B'}</span>
+                        <span>📱 Level 5: ${isTr ? 'Teknoloji & B2B İhaleleri' : 'Tech & B2B Contracts'}</span>
                         <span class="wt-badge" style="background:#e67e22; color:white;">Lv 5</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Akıllı Telefon reyonu ($12.000)' : 'Smartphone aisle ($12,000)'} ➔ 1 ${isTr ? 'B2B toptan sözleşmesi tamamla' : 'Complete 1 B2B contract'} ➔ ${isTr ? '$50.000 nakit biriktir' : 'Reach $50,000 cash'} ➔ ${isTr ? 'Oyuncak reyonunu kur ($10.000)' : 'Build Toys aisle ($10,000)'}.<br>
-                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'B2B sekmesindeki kurumsal siparişleri tamamla. Tek seferde $20.000 - $40.000 toplu nakit kasana girer!' : 'Fulfill B2B wholesale deals for huge $20,000-$40,000 instant cash injections!'}
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Telefon reyonu aç ve 10 Telefon sat' : 'Build Smartphone aisle & sell 10 Phones'} ➔ 2 ${isTr ? 'B2B ihalesini teslim et' : 'Fulfill 2 B2B contracts'} ➔ ${isTr ? '$50.000 nakit ve %15 Pazar Payı' : 'Reach $50,000 cash & 15% Market Share'} ➔ ${isTr ? 'Oyuncak reyonunu aç' : 'Build Toys aisle'}.<br>
+                        <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'B2B sözleşmeleri tek seferde toplu nakit kazandırır! Telefonları yüksek kar marjıyla sat.' : 'Fulfill B2B wholesale deals for huge instant cash injections!'}
                     </div>
                 </div>
 
@@ -1318,7 +1318,7 @@ const UI = {
                         <span class="wt-badge" style="background:#e74c3c; color:white;">Lv 6</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Binayı Süpermarkete yükselt ($75.000)' : 'Upgrade Building to Supermarket ($75,000)'} ➔ ${isTr ? 'İlaç/Eczane reyonunu kur ($20.000)' : 'Build Pharmacy aisle ($20,000)'} ➔ 1 ${isTr ? 'Vakfı Seviye 3 yap' : 'Upgrade 1 Foundation to Lv 3'}.<br>
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Binayı Süpermarkete yükselt ($75.000)' : 'Upgrade Building to Supermarket ($75,000)'} ➔ ${isTr ? 'İlaç reyonu kur ve 20 İlaç sat' : 'Build Pharmacy & sell 20 Medicines'} ➔ 1 ${isTr ? 'Vakfı Seviye 3 yap' : 'Upgrade 1 Foundation to Lv 3'}.<br>
                         <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Yükseltmeler sekmesinden binanı seviye 2 yap. Personel kapasiten 40 kişiye fırlar ve müşteri akını başlar.' : 'Building upgrade boosts staff cap to 40 and substantially increases daily foot traffic.'}
                     </div>
                 </div>
@@ -1343,7 +1343,7 @@ const UI = {
                         <span class="wt-badge" style="background:#16a085; color:white;">Lv 8</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Mega AVM seviyesine geç ($400.000)' : 'Upgrade to Mega Mall ($400,000)'} ➔ ${isTr ? 'Spor Araba reyonu ($100.000)' : 'Build Sports Car aisle ($100,000)'} ➔ ${isTr ? 'Mobilya reyonu ($35.000)' : 'Build Furniture aisle ($35,000)'} ➔ ${isTr ? 'Yeşil Doğa Vakfını Lv 5 yap' : 'Green NGO to Lv 5'}.<br>
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> ${isTr ? 'Mega AVM seviyesine geç ($400.000)' : 'Upgrade to Mega Mall ($400,000)'} ➔ ${isTr ? 'Spor Araba reyonu kur ve 1 Araba sat' : 'Build Sports Car aisle & sell 1 Car'} ➔ ${isTr ? 'Mobilya reyonunu aç' : 'Build Furniture aisle'} ➔ ${isTr ? 'Yeşil Doğa Vakfını Lv 5 yap' : 'Green NGO to Lv 5'}.<br>
                         <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Spor araba satışı başına binlerce dolar net kar bırakır. Günlük net karın $50.000 üzerine çıkabilir!' : 'Sports cars deliver insane profit margins. Your daily profit can easily exceed $50,000!'}
                     </div>
                 </div>
@@ -1357,7 +1357,7 @@ const UI = {
                         <span class="wt-badge" style="background:#2c3e50; color:white;">Lv 9</span>
                     </div>
                     <div class="wt-step-body">
-                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kargo Uçağı satın al ($50.000)' : 'Buy Cargo Plane ($50,000)'} ➔ %80 ${isTr ? 'Pazar Payına ulaş' : 'Market Share'} ➔ $300.000 ${isTr ? 'nakit topla' : 'cash'} ➔ ${isTr ? 'Holding Plaza seviyesine geç ($1.000.000)' : 'Upgrade to Plaza ($1,000,000)'}.<br>
+                        <b>🎯 ${isTr ? 'Hedefler' : 'Goals'}:</b> 1 ${isTr ? 'Kargo Uçağı satın al ($150.000)' : 'Buy Cargo Plane ($150,000)'} ➔ %80 ${isTr ? 'Pazar Payına ulaş' : 'Market Share'} ➔ $500.000 ${isTr ? 'nakit topla' : 'cash'} ➔ ${isTr ? 'Holding Plaza seviyesine geç ($1.000.000)' : 'Upgrade to Plaza ($1,000,000)'}.<br>
                         <b>💡 ${isTr ? 'Taktik' : 'Tip'}:</b> ${isTr ? 'Kargo uçağı taşıma sınırlarını kaldırır. Rakip HyperMart pazar payını eritmek için AR-GE ve ajanlık operasyonlarını aralıksız sürdür.' : 'Cargo plane removes shipping bottlenecks. Run R&D and espionage sabotage to crush HyperMart share.'}
                     </div>
                 </div>
@@ -1380,9 +1380,9 @@ const UI = {
             <!-- TAB 5: Pro Tips & Tricks -->
             <div class="wt-content" id="wt-view-tips">
                 <div class="wt-step-card">
-                    <div class="wt-step-title"><span style="color:#27ae60;">⚡ ${isTr ? 'Kasa Rush Mini-Oyunu (Sonsuz Nakit)' : 'Cashier Rush (Instant Cash)'}</span></div>
+                    <div class="wt-step-title"><span style="color:#27ae60;">⚡ ${isTr ? 'Kasa Rush Mini-Oyunu (Patron Memnuniyeti)' : 'Cashier Rush (Customer & Morale)'}</span></div>
                     <div class="wt-step-body">
-                        ${isTr ? 'Nakite sıkıştığında veya batmak üzereyken Dükkan sekmesindeki "Kasa Rush" butonuna tıkla. 15 saniyede barkodları okutarak sıfır maliyetle binlerce dolar nakit kazanabilirsin!' : 'Whenever cash is low, open Shop tab and tap "Cashier Rush". Scan items in 15s to earn thousands in pure profit!'}
+                        ${isTr ? 'Patron moralini ve müşteri memnuniyetini yükseltmek için Dükkan sekmesindeki "Kasa Rush" butonuna tıkla. 10 saniyede hızlıca barkod okutarak moralini anında tavan yaptırabilirsin!' : 'Whenever customer queues or boss morale needs a lift, tap "Cashier Rush" in Shop tab. Quick scanning provides a huge boost to executive morale!'}
                     </div>
                 </div>
 

@@ -316,19 +316,17 @@ const Engine = {
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 Engine._cashierScan = () => {};
-                let rewardCash = score * 250;
-                let rewardMorale = Math.min(10, Math.floor(score / 3) + 2);
-                Engine.earnMoney(rewardCash);
-                Engine.adjustMorale(rewardMorale, isEn ? "Cashier Rush Victory" : "Kasa Rush Zaferi");
+                let rewardMorale = Math.min(25, Math.max(5, Math.floor(score * 0.75)));
+                Engine.adjustMorale(rewardMorale, isEn ? "Cashier Rush Customer Service" : "Hızlı Kasa Müşteri Memnuniyeti");
 
                 let resultHtml = `
                     <div style="text-align:center; padding:10px 0;">
                         <div style="font-size:3rem;">🎉</div>
-                        <div style="font-weight:900; font-size:1.3rem; color:var(--success);">${isEn ? 'EXCELLENT PERFORMANCE!' : 'HARİKA PERFORMANS!'}</div>
-                        <div style="font-size:0.95rem; margin:10px 0;">${isEn ? `You scanned a total of <b>${score} items</b> in 10s!` : `10 saniyede toplam <b>${score} ürün</b> okuttun!`}</div>
-                        <div style="background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3); border-radius:12px; padding:12px; margin-top:10px;">
-                            <div class="green" style="font-weight:900; font-size:1.15rem;">+${App.formatMoney(rewardCash)} ${isEn ? 'Fast Checkout Revenue' : 'Hızlı Kasa Hasılatı'}</div>
-                            <div class="primary" style="font-weight:900; font-size:1.05rem; margin-top:4px;">+${rewardMorale} ${t('headerMorale')}</div>
+                        <div style="font-weight:900; font-size:1.3rem; color:var(--success);">${isEn ? 'CUSTOMER SATISFACTION BOOST!' : 'MÜŞTERİ MEMNUNİYETİ VE MORAL ARTIŞI!'}</div>
+                        <div style="font-size:0.95rem; margin:10px 0;">${isEn ? `You quickly scanned a total of <b>${score} items</b> in 10s!` : `10 saniyede jet gibi toplam <b>${score} ürün</b> okuttun!`}</div>
+                        <div style="background:rgba(155,89,182,0.12); border:1px solid rgba(155,89,182,0.3); border-radius:12px; padding:14px; margin-top:10px;">
+                            <div style="color:#8e44ad; font-weight:900; font-size:1.25rem;">+${rewardMorale} ${t('headerMorale')}</div>
+                            <div style="font-size:0.85rem; color:var(--text-dark); margin-top:4px;">${isEn ? 'Fast checkout delighted customers and revitalized boss spirits!' : 'Kuyruklar eridi, müşteri memnuniyeti ve patron morali tavan yaptı!'}</div>
                         </div>
                     </div>
                 `;
@@ -716,6 +714,17 @@ const Engine = {
                     case 'inventory':
                         satisfied = (g.inventory && (g.inventory[cond.param] || 0) >= cond.value);
                         break;
+                    case 'sold':
+                        satisfied = !!(g.stats && g.stats.productSales && (g.stats.productSales[cond.param] || 0) >= cond.value);
+                        break;
+                    case 'totalSold':
+                        satisfied = !!(g.stats && (g.stats.totalSold || 0) >= cond.value);
+                        break;
+                    case 'days': {
+                        let totalDays = (g.stats && g.stats.daysPassed !== undefined) ? g.stats.daysPassed : ((g.day || 1) + ((g.week || 1) - 1) * 7 + ((g.month || 1) - 1) * 28);
+                        satisfied = totalDays >= cond.value;
+                        break;
+                    }
                     case 'unlocked':
                         satisfied = !!(g.unlocked && g.unlocked[cond.param]);
                         break;
@@ -1333,13 +1342,30 @@ const Engine = {
                     let rev = sold * actualSellPrice;
                     Engine.earnMoney(rev); revenue += rev; soldTotal += sold;
                     g.inventory[k] -= sold; g.currentStorage -= (sold * p.space);
+
+                    if (!g.stats) g.stats = { earned: 0, spent: 0, contractsCompleted: 0 };
+                    if (!g.stats.productSales) g.stats.productSales = {};
+                    g.stats.productSales[k] = (g.stats.productSales[k] || 0) + sold;
+
                     let pName = tProduct(k);
                     logKasa(isEn ? `🛒 ${pName}: ${sold} sold (+${App.formatMoney(rev)})` : `🛒 ${p.name}: ${sold} satıldı (+${App.formatMoney(rev)})`);
                 }
             }
         }
 
+        if (!g.stats) g.stats = { earned: 0, spent: 0, contractsCompleted: 0 };
+        if (!g.stats.totalSold) g.stats.totalSold = 0;
+        g.stats.totalSold += soldTotal;
+        if (!g.stats.daysPassed) g.stats.daysPassed = 0;
+        g.stats.daysPassed += 1;
+
         let expenses = 0; 
+
+        // Daily Store Utilities & Rent (Tycoon balance)
+        let rentCosts = [0, 25, 120, 450, 1500];
+        let bRent = rentCosts[Math.min(g.buildingLevel, 4)] || 1500;
+        expenses += bRent;
+        logKasa(isEn ? `🏢 Store Rent & Commercial Utilities: -${App.formatMoney(bRent)}` : `🏢 Mağaza Kirası & Faturalar: -${App.formatMoney(bRent)}`); 
         let managerDiscount = (g.staff && g.staff.manager > 0) ? 0.8 : 1.0; 
         let hrWageMod = (g.skills && g.skills.hrExpert && g.skills.hrExpert.unlocked) ? 0.9 : 1.0;
         
@@ -1812,24 +1838,52 @@ const Engine = {
             Engine.startEspionage('headhunt');
         }
 
-        // 12. Buy wholesale stock if warehouse is empty
+        // 12. Smart Diversified Wholesale Purchasing for ALL Unlocked Products
+        let orderedItems = [];
         if (GameData.products) {
             let availableUnlocked = Object.keys(GameData.products).filter(k => g.unlocked[k]);
-            let storageRoom = g.storageCapacity - g.currentStorage;
-            if (storageRoom > 20) {
-                for (let pId of availableUnlocked) {
-                    let p = GameData.products[pId];
-                    let currentCount = g.inventory[pId] || 0;
-                    if (currentCount < 25 && g.money >= (p.buy * 15) + 800) {
-                        let qty = Math.min(20, Math.floor(storageRoom / p.space));
-                        if (qty > 0) {
-                            Engine.buyProduct(pId, qty);
-                            break;
-                        }
+            // Sort products by current stock + incoming cargo ascending: lowest stock gets purchased first!
+            availableUnlocked.sort((a, b) => {
+                let stockA = (g.inventory[a] || 0) + (g.incomingCargo || []).filter(c => c.id === a).reduce((s, c) => s + c.qty, 0);
+                let stockB = (g.inventory[b] || 0) + (g.incomingCargo || []).filter(c => c.id === b).reduce((s, c) => s + c.qty, 0);
+                return stockA - stockB;
+            });
+
+            let actStore = g.storageCapacity;
+            if (g.skills && g.skills.storageOpt && g.skills.storageOpt.unlocked) actStore = Math.floor(actStore * 1.2);
+            let trCap = Engine.getTotalTransportCap();
+
+            for (let pId of availableUnlocked) {
+                let p = GameData.products[pId];
+                let incomingQty = (g.incomingCargo || []).filter(c => c.id === pId).reduce((s, c) => s + c.qty, 0);
+                let effectiveStock = (g.inventory[pId] || 0) + incomingQty;
+                
+                let targetStock = (pId === 'car' || pId === 'tv' || pId === 'furniture') ? 3 : 25;
+                if (effectiveStock < targetStock) {
+                    let needed = targetStock - effectiveStock;
+                    let availStorage = actStore - g.currentStorage;
+                    let availTransport = trCap - g.currentTransportUsed;
+                    if (availStorage <= 0 || availTransport <= 0) break;
+
+                    let maxByStorage = Math.floor(availStorage / p.space);
+                    let maxByTransport = Math.floor(availTransport / p.space);
+                    let buyPrice = Engine.getProductBuyPrice(pId);
+                    let maxByMoney = Math.floor((g.money - 600) / buyPrice);
+
+                    let qtyToBuy = Math.min(needed, maxByStorage, maxByTransport, maxByMoney);
+                    if (qtyToBuy >= 1) {
+                        Engine.buyProduct(pId, qtyToBuy);
+                        orderedItems.push(`${qtyToBuy}x ${tProduct(pId)}`);
                     }
                 }
             }
         }
+
+        let isEn = App.state.lang === 'en';
+        let summaryMsg = orderedItems.length > 0 
+            ? (isEn ? `🤖 Auto-Pilot Day ${g.day}: Ordered ${orderedItems.slice(0, 3).join(', ')}` : `🤖 Oto-Pilot Gün ${g.day}: ${orderedItems.slice(0, 3).join(', ')} sipariş edildi`)
+            : (isEn ? `🤖 Auto-Pilot Day ${g.day}: Store in order` : `🤖 Oto-Pilot Gün ${g.day}: Reyonlar ve kasa düzenli`);
+        App.showNotify(summaryMsg, 'info');
 
         // 13. End day to advance turn
         Engine.endDay();
@@ -1837,7 +1891,7 @@ const Engine = {
         if (Engine.isAutoPilot) {
             Engine.autoPilotTimer = setTimeout(() => {
                 Engine.runAutoPilotStep();
-            }, 1200);
+            }, 3500);
         }
     }
 };
