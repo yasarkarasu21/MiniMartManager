@@ -86,7 +86,7 @@ const UI = {
                     <div class="page-header mt-2">${t('settings')}</div>
                     <div class="manage-card" onclick="UI.openPanel('roadmap')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #f39c12, #e67e22);">🗺️</div>
-                        <div class="mc-content"><div class="mc-title">Yol Haritası (Roadmap)</div><div class="mc-desc">150 Seviye bina yolculuğu</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('roadmapTitle')}</div><div class="mc-desc">${t('roadmapSub')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
                     <div class="manage-card" onclick="UI.openPanel('settings')">
@@ -119,7 +119,7 @@ const UI = {
         <div class="floating-panel" id="panel-upgrades"><div class="panel-header"><span class="panel-title">🏢 ${t('upgrades')}</span><button class="btn-close" onclick="UI.closePanel('upgrades')">X</button></div><div class="panel-body" id="upgrades-view"></div></div>
         <div class="floating-panel" id="panel-factory"><div class="panel-header"><span class="panel-title">🏭 ${t('factory')}</span><button class="btn-close" onclick="UI.closePanel('factory')">X</button></div><div class="panel-body" id="factory-view"></div></div>
         <div class="floating-panel" id="panel-settings"><div class="panel-header"><span class="panel-title">⚙️ ${t('settings')}</span><button class="btn-close" onclick="UI.closePanel('settings')">X</button></div><div class="panel-body" id="settings-view"></div></div>
-        <div class="floating-panel" id="panel-roadmap"><div class="panel-header"><span class="panel-title">🗺️ Yol Haritası</span><button class="btn-close" onclick="UI.closePanel('roadmap')">X</button></div><div class="panel-body" id="roadmap-view"></div></div>
+        <div class="floating-panel" id="panel-roadmap"><div class="panel-header"><span class="panel-title">🗺️ ${t('roadmapTitle')}</span><button class="btn-close" onclick="UI.closePanel('roadmap')">X</button></div><div class="panel-body" id="roadmap-view"></div></div>
         <div class="floating-panel" id="panel-calendar"><div class="panel-header"><span class="panel-title">📅 ${t('calendarTitle')}</span><button class="btn-close" onclick="UI.closePanel('calendar')">X</button></div><div class="panel-body" id="calendar-view"></div></div>
         <div class="floating-panel" id="panel-law"><div class="panel-header"><span class="panel-title">🧑‍⚖️ ${t('lawTitle')}</span><button class="btn-close" onclick="UI.closePanel('law')">X</button></div><div class="panel-body" id="law-view"></div></div>
         <div class="floating-panel" id="panel-relations"><div class="panel-header"><span class="panel-title">🤝 ${t('relationsTitle')}</span><button class="btn-close" onclick="UI.closePanel('relations')">X</button></div><div class="panel-body" id="relations-view"></div></div>
@@ -461,7 +461,7 @@ const UI = {
         else {
             g.availableContracts.forEach((c, idx) => {
                 if(c.isBribe) {
-                    h += `<div class="item-row" style="background:#fff3cd; border-color:#ffeeba;"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">Gizli bir ödeme karşılığı iyilik isteniyor.</span><span class="item-sub green">${t('rewardLabel')}: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Bedeli: İtibar Kaybı</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.acceptContract(${idx})">${t('acceptBidBtn')}</button></div></div>`;
+                    h += `<div class="item-row" style="background:#fff3cd; border-color:#ffeeba;"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">${t('bribeContractDesc')}</span><span class="item-sub green">${t('rewardLabel')}: ${App.formatMoney(c.reward)}</span><span class="item-sub red">${t('bribeCostDesc')}</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.acceptContract(${idx})">${t('acceptBidBtn')}</button></div></div>`;
                 } else {
                     let pName = tProduct(c.item);
                     h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">${t('requestedLabel')}: <strong>${c.qty}x ${pName}</strong> (${c.days} ${t('day')})</span><span class="item-sub green">${t('rewardLabel')}: ${App.formatMoney(c.reward)}</span><span class="item-sub red">${t('penaltyLabel')}: -${App.formatMoney(c.penalty)}</span></div><div class="item-action"><button class="btn btn-purple" onclick="Engine.acceptContract(${idx})">${t('acceptBidBtn')}</button></div></div>`;
@@ -496,49 +496,56 @@ const UI = {
                 loansHTML += `<div class="item-row" style="background:rgba(231,76,60,0.05); border:1px solid rgba(231,76,60,0.2);">
                     <div class="item-info">
                         <span class="item-title">${l.type}</span>
-                        <span class="item-sub" style="color:var(--text-dark);">${t('daysRemaining')}: ${l.daysLeft} ${t('day')} (Günlük: ${App.formatMoney(l.dailyPayment)})</span>
-                        <span class="item-sub red" style="font-weight:bold;">Toplam Borç: ${App.formatMoney(l.total)}</span>
+                        <span class="item-sub" style="color:var(--text-dark);">${t('daysRemaining')}: ${l.daysLeft} ${t('day')} (${(App.state.lang==='en'?'Daily: ':'Günlük: ') + App.formatMoney(l.dailyPayment)})</span>
+                        <span class="item-sub red" style="font-weight:bold;">${(App.state.lang==='en'?'Total Debt: ':'Toplam Borç: ') + App.formatMoney(l.total)}</span>
                     </div>
                     <div class="item-action"><button class="btn btn-danger" onclick="Engine.payOffLoan(${idx})">${t('payOffLoanBtn')}</button></div>
                 </div>`;
             });
         }
 
+        let l1Name = t('emergencyCashTitle');
+        let l2Name = t('commGrowthLoanTitle');
+        let l3Name = t('holdingLoanTitle');
+        let lPrincStr = (got, pay) => t('loanPrincipal').replace('{got}', App.formatMoney(got)).replace('{pay}', App.formatMoney(pay));
+        let lTermStr = (days, daily) => t('loanTerm').replace('{days}', days).replace('{daily}', App.formatMoney(daily));
+        let loanBtn = t('loanTakeBtn');
+
         h += `<div class="panel mb-2">
             <div style="font-weight:900; font-size:1.2rem; margin-bottom:10px; color:var(--primary-dark); text-align:center;">${t('loansTitle')}</div>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <div class="item-row" style="padding:10px; border:1px solid #ddd; background: #fafafa;">
                     <div class="item-info">
-                        <span class="item-title">Acil Nakit</span>
-                        <span class="item-sub">Alınan: $10,000 | Geri Ödeme: $12,000</span>
-                        <span class="item-sub">10 Gün Vadeli (Günlük: $1,200)</span>
+                        <span class="item-title">${l1Name}</span>
+                        <span class="item-sub">${lPrincStr(10000, 12000)}</span>
+                        <span class="item-sub">${lTermStr(10, 1200)}</span>
                     </div>
-                    <div class="item-action"><button class="btn btn-green" onclick="Engine.takeLoanPackage(10000, 12000, 10, 'Acil Nakit')">Al</button></div>
+                    <div class="item-action"><button class="btn btn-green" onclick="Engine.takeLoanPackage(10000, 12000, 10, '${l1Name}')">${loanBtn}</button></div>
                 </div>
                 <div class="item-row" style="padding:10px; border:1px solid #ddd; background: #fafafa;">
                     <div class="item-info">
-                        <span class="item-title">Ticari Kredi (Büyüme)</span>
-                        <span class="item-sub">Alınan: $50,000 | Geri Ödeme: $65,000</span>
-                        <span class="item-sub">30 Gün Vadeli (Günlük: $2,166)</span>
+                        <span class="item-title">${l2Name}</span>
+                        <span class="item-sub">${lPrincStr(50000, 65000)}</span>
+                        <span class="item-sub">${lTermStr(30, 2166)}</span>
                     </div>
-                    <div class="item-action"><button class="btn btn-green" onclick="Engine.takeLoanPackage(50000, 65000, 30, 'Ticari Kredi')">Al</button></div>
+                    <div class="item-action"><button class="btn btn-green" onclick="Engine.takeLoanPackage(50000, 65000, 30, '${l2Name}')">${loanBtn}</button></div>
                 </div>
                 <div class="item-row" style="padding:10px; border:1px solid #ddd; background: #fafafa;">
                     <div class="item-info">
-                        <span class="item-title">Holding Yatırımı</span>
-                        <span class="item-sub">Alınan: $250,000 | Geri Ödeme: $350,000</span>
-                        <span class="item-sub">50 Gün Vadeli (Günlük: $7,000)</span>
+                        <span class="item-title">${l3Name}</span>
+                        <span class="item-sub">${lPrincStr(250000, 350000)}</span>
+                        <span class="item-sub">${lTermStr(50, 7000)}</span>
                     </div>
-                    <div class="item-action"><button class="btn btn-green" onclick="Engine.takeLoanPackage(250000, 350000, 50, 'Holding Yatırımı')">Al</button></div>
+                    <div class="item-action"><button class="btn btn-green" onclick="Engine.takeLoanPackage(250000, 350000, 50, '${l3Name}')">${loanBtn}</button></div>
                 </div>
             </div>
             ${loansHTML}
         </div>`;
 
-        h += `<div class="item-row mb-2"><div class="item-info"><span class="item-title">${t('depositTitle')}</span><span class="item-sub green">${t('depositBalance')}: ${App.formatMoney(g.deposits)} (%2/Gün)</span></div><div class="item-action" style="flex-direction:row;"><button class="btn" onclick="Engine.depositMoney(10000)">+10K ${t('depositBtn')}</button><button class="btn btn-green" onclick="Engine.withdrawMoney(10000)">${t('withdrawBtn')}</button></div></div>`;
+        h += `<div class="item-row mb-2"><div class="item-info"><span class="item-title">${t('depositTitle')}</span><span class="item-sub green">${t('depositBalance')}: ${App.formatMoney(g.deposits)} (${App.state.lang==='en'?'2%/Day':'%2/Gün'})</span></div><div class="item-action" style="flex-direction:row;"><button class="btn" onclick="Engine.depositMoney(10000)">+10K ${t('depositBtn')}</button><button class="btn btn-green" onclick="Engine.withdrawMoney(10000)">${t('withdrawBtn')}</button></div></div>`;
         
         h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('stocksTitle')}</div>`;
-        for (let s in g.stocks) { let stock = g.stocks[s]; let n = s==='doge'?'DogeCoin':(s==='gold'?'Altın':s); h += `<div class="item-row stock"><div class="item-info"><span class="item-title">${n}</span><span class="item-sub">${t('stockPrice')}: ${App.formatMoney(stock.price)}</span><span class="item-sub green">${t('stockShares')}: ${stock.shares}</span></div><div class="item-action" style="flex-direction:row;"><button class="btn btn-green" onclick="Engine.buyStock('${s}')">${t('buyStockBtn')}</button><button class="btn btn-danger" onclick="Engine.sellStock('${s}')">${t('sellStockBtn')}</button></div></div>`; }
+        for (let s in g.stocks) { let stock = g.stocks[s]; let n = s==='doge'?'DogeCoin':(s==='gold'?t('goldStock'):s); h += `<div class="item-row stock"><div class="item-info"><span class="item-title">${n}</span><span class="item-sub">${t('stockPrice')}: ${App.formatMoney(stock.price)}</span><span class="item-sub green">${t('stockShares')}: ${stock.shares}</span></div><div class="item-action" style="flex-direction:row;"><button class="btn btn-green" onclick="Engine.buyStock('${s}')">${t('buyStockBtn')}</button><button class="btn btn-danger" onclick="Engine.sellStock('${s}')">${t('sellStockBtn')}</button></div></div>`; }
         document.getElementById('finance-view').innerHTML = h;
     },
     
@@ -546,61 +553,59 @@ const UI = {
         let g = App.state.g;
         if (!g.currentLevel) Engine.updatePlayerLevel();
         let curLvl = g.currentLevel || 1;
-        let lvlInfo = (typeof GameData !== 'undefined' && GameData.levels && GameData.levels[curLvl]) 
-            ? GameData.levels[curLvl] 
-            : { name: "Tüccar", desc: "Ticarete devam et." };
+        let lvlInfo = tLevel(curLvl);
 
         let h = `<div class="panel mb-2" style="background:linear-gradient(135deg, #2c3e50, #3498db); color:white; padding:15px; text-align:center;">
-            <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; opacity:0.9;">Mevcut Şirket Statüsü</div>
-            <div style="font-size:1.5rem; font-weight:900; margin:4px 0;">⭐ Seviye ${curLvl}: ${lvlInfo.name}</div>
+            <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; opacity:0.9;">${t('statusTitle')}</div>
+            <div style="font-size:1.5rem; font-weight:900; margin:4px 0;">⭐ ${t('levelText')} ${curLvl}: ${lvlInfo.name}</div>
             <div style="font-size:0.85rem; opacity:0.9; margin-bottom:10px;">${lvlInfo.desc}</div>
             <div style="display:inline-block; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:20px; font-weight:bold; font-size:0.9rem;">
-                🧪 Ar-Ge Bütçesi: ${g.researchPoints} RP
+                🧪 ${t('currentRP')}: ${g.researchPoints} RP
             </div>
         </div>`;
 
         // Ar-Ge Becerileri (Skills)
-        h += '<div class="page-header mt-2" style="font-size:1.1rem;">💡 Ar-Ge Yetenekleri</div>';
+        h += `<div class="page-header mt-2" style="font-size:1.1rem;">${t('skillsTitle')}</div>`;
         for(let k in g.skills) {
-            let s = g.skills[k];
+            let sInfo = tSkill(k);
+            let sState = g.skills[k];
             h += `<div class="item-row skill" style="margin-bottom:6px;">
                 <div class="item-info">
-                    <span class="item-title">${s.name}</span>
-                    <span class="item-sub">${s.desc}</span>
+                    <span class="item-title">${sInfo.name}</span>
+                    <span class="item-sub">${sInfo.desc}</span>
                 </div>
                 <div class="item-action">
-                    ${s.unlocked ? '<button class="btn btn-sm" disabled style="background:var(--success); color:white;">Açıldı</button>' : `<button class="btn btn-purple btn-sm" onclick="Engine.unlockSkill('${k}')">Aç (${s.cost} RP)</button>`}
+                    ${sState.unlocked ? `<button class="btn btn-sm" disabled style="background:var(--success); color:white;">${t('unlockedTag')}</button>` : `<button class="btn btn-purple btn-sm" onclick="Engine.unlockSkill('${k}')">${t('rpCost').replace('{cost}', sState.cost)}</button>`}
                 </div>
             </div>`;
         }
 
         // Seviye Bazlı Görevler (Level Quests)
-        h += '<div class="page-header mt-3" style="font-size:1.1rem;">📋 Seviye Görevleri & Hedefler</div>';
+        h += `<div class="page-header mt-3" style="font-size:1.1rem;">${t('levelQuestsTitle')}</div>`;
 
         if (typeof GameData !== 'undefined' && GameData.quests && GameData.levels) {
             for (let l = 1; l <= 10; l++) {
-                let lData = GameData.levels[l];
-                if (!lData) continue;
+                let lData = tLevel(l);
                 let levelQuestKeys = Object.keys(GameData.quests).filter(k => GameData.quests[k].level === l);
                 if (levelQuestKeys.length === 0) continue;
 
                 let isLevelDone = levelQuestKeys.every(k => g.quests[k] && g.quests[k].claimed);
                 let isCurrentLevel = (l === curLvl);
-                let isLocked = (l > curLvl);
 
                 let headerBg = isLevelDone ? 'rgba(46, 204, 113, 0.15)' : (isCurrentLevel ? 'rgba(52, 152, 219, 0.15)' : 'rgba(0,0,0,0.03)');
                 let borderCol = isLevelDone ? 'var(--success)' : (isCurrentLevel ? 'var(--primary)' : '#ddd');
-                let statusBadge = isLevelDone ? '<span style="color:var(--success); font-weight:bold; font-size:0.8rem;">✅ Tamamlandı</span>' : (isCurrentLevel ? '<span style="color:var(--primary); font-weight:bold; font-size:0.8rem;">⭐ Aktif Seviye</span>' : '<span style="color:var(--text-muted); font-size:0.8rem;">🔒 Kilitli</span>');
+                let statusBadge = isLevelDone ? `<span style="color:var(--success); font-weight:bold; font-size:0.8rem;">${t('completedBadge')}</span>` : (isCurrentLevel ? `<span style="color:var(--primary); font-weight:bold; font-size:0.8rem;">${t('activeBadge')}</span>` : `<span style="color:var(--text-muted); font-size:0.8rem;">${t('lockedBadge')}</span>`);
 
                 h += `<div class="panel mb-2" style="border-left: 4px solid ${borderCol}; background:${headerBg}; padding:10px 12px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <span style="font-weight:900; font-size:1rem; color:var(--text-dark);">Seviye ${l}: ${lData.name}</span>
+                        <span style="font-weight:900; font-size:1rem; color:var(--text-dark);">${t('levelText')} ${l}: ${lData.name}</span>
                         ${statusBadge}
                     </div>
                     <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">${lData.desc}</div>`;
 
                 levelQuestKeys.forEach(qKey => {
                     let qDef = GameData.quests[qKey];
+                    let qInfo = tQuest(qKey);
                     let qState = g.quests[qKey] || { done: false, claimed: false };
 
                     let prereqsOk = true;
@@ -616,21 +621,21 @@ const UI = {
 
                     let actionBtn = '';
                     if (qState.claimed) {
-                        actionBtn = `<button class="btn btn-sm" disabled style="background:var(--success); color:white; opacity:0.9;">✅ Alındı</button>`;
+                        actionBtn = `<button class="btn btn-sm" disabled style="background:var(--success); color:white; opacity:0.9;">${t('rewardClaimed')}</button>`;
                     } else if (qState.done) {
-                        actionBtn = `<button class="btn btn-green btn-sm" style="animation: pulse 1.5s infinite;" onclick="Engine.claimQuest('${qKey}')">🎁 Ödülü Al</button>`;
+                        actionBtn = `<button class="btn btn-green btn-sm" style="animation: pulse 1.5s infinite;" onclick="Engine.claimQuest('${qKey}')">${t('claimRewardBtn')}</button>`;
                     } else if (!prereqsOk || !buildOk) {
-                        actionBtn = `<button class="btn btn-sm" disabled style="opacity:0.5; font-size:0.75rem;">🔒 Kilitli</button>`;
+                        actionBtn = `<button class="btn btn-sm" disabled style="opacity:0.5; font-size:0.75rem;">${t('lockedBadge')}</button>`;
                     } else {
-                        actionBtn = `<button class="btn btn-sm" disabled style="opacity:0.6; font-size:0.75rem;">Devam Ediyor</button>`;
+                        actionBtn = `<button class="btn btn-sm" disabled style="opacity:0.6; font-size:0.75rem;">${t('inProgress')}</button>`;
                     }
 
                     h += `<div class="item-row quest" style="background:white; margin-bottom:6px; padding:8px 10px; border-radius:10px; border:1px solid rgba(0,0,0,0.06);">
                         <div class="item-info">
-                            <span class="item-title" style="font-size:0.95rem;">${qDef.title}</span>
-                            <span class="item-sub" style="font-size:0.8rem;">${qDef.desc}</span>
-                            <span class="item-sub" style="color:var(--primary); font-size:0.75rem; font-weight:bold;">Ödül: ${rewardStr.join(', ')}</span>
-                            ${(!buildOk && qDef.reqBuild) ? `<span class="item-sub red" style="font-size:0.75rem;">⚠️ Gereken Bina: Seviye ${qDef.reqBuild}</span>` : ''}
+                            <span class="item-title" style="font-size:0.95rem;">${qInfo.title}</span>
+                            <span class="item-sub" style="font-size:0.8rem;">${qInfo.desc}</span>
+                            <span class="item-sub" style="color:var(--primary); font-size:0.75rem; font-weight:bold;">${t('rewardLabel')}: ${rewardStr.join(', ')}</span>
+                            ${(!buildOk && qDef.reqBuild) ? `<span class="item-sub red" style="font-size:0.75rem;">${t('reqBuildingAlert').replace('{n}', qDef.reqBuild)}</span>` : ''}
                         </div>
                         <div class="item-action">
                             ${actionBtn}
@@ -649,60 +654,61 @@ const UI = {
         if(!g.lawsuits) g.lawsuits = [];
         if(g.lawyerLevel === undefined) g.lawyerLevel = 0;
         
-        let lawyers = [
-            { name: "Avukat Yok", fee: 0, winRate: 10, desc: "Çok riskli. %10 Kazanma şansı." },
-            { name: "Stajyer Avukat", fee: 200, winRate: 40, desc: "Günlük ücreti ucuz. %40 Kazanma şansı." },
-            { name: "Şirket Avukatı", fee: 1000, winRate: 70, desc: "Profesyonel savunma. %70 Kazanma şansı." },
-            { name: "Şeytanın Avukatı", fee: 4000, winRate: 95, desc: "Davalarda kesin zafer. %95 Kazanma şansı." }
-        ];
+        let lawyerFees = [0, 200, 1000, 4000];
+        let lawyerWinRates = [10, 40, 70, 95];
+        let lawyers = [0, 1, 2, 3].map(idx => {
+            let lInfo = tLawyer(idx);
+            return { name: lInfo.name, fee: lawyerFees[idx], winRate: lawyerWinRates[idx], desc: lInfo.desc };
+        });
 
         h += `<div class="panel text-center mb-2" style="background:var(--primary-dark); color:white;">
-            <div style="font-size:1.4rem; font-weight:900;">🧑‍⚖️ Hukuk Departmanı</div>
-            <div style="font-size:0.9rem; opacity:0.9;">Davalarla başa çıkmak için avukatınızı güçlendirin veya duruşmada zar atın!</div>
+            <div style="font-size:1.4rem; font-weight:900;">${t('lawTitle')}</div>
+            <div style="font-size:0.9rem; opacity:0.9;">${t('lawSub')}</div>
         </div>`;
 
         // Lawyer Raise / Bonus Card
         h += `<div class="panel mb-2" style="background:${g.lawyerRaise ? 'rgba(52, 152, 219, 0.12)' : 'rgba(0,0,0,0.03)'}; border:1px solid ${g.lawyerRaise ? 'rgba(52, 152, 219, 0.4)' : '#ddd'};">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <div style="font-weight:900; font-size:1.05rem; color:var(--primary-dark);">💼 Avukata Prim & Zam</div>
-                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">Maliyet: <b>+$1,000/gün</b> | Durum: <b>${g.lawyerRaise ? 'Aktif (+%20 Zafer Şansı)' : 'Standart Tarife'}</b></div>
-                    <div style="font-size:0.75rem; color:var(--text-light); margin-top:2px;">Avukata prim verildiğinde duruşma zafer şansı %20 artar ve duruşmada zar atarken +2 bonus verir!</div>
+                    <div style="font-weight:900; font-size:1.05rem; color:var(--primary-dark);">${t('lawyerRaiseTitle')}</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">${t('lawyerRaiseCost')} | <b>${g.lawyerRaise ? t('lawyerRaiseStatusOn') : t('lawyerRaiseStatusOff')}</b></div>
+                    <div style="font-size:0.75rem; color:var(--text-light); margin-top:2px;">${t('lawyerRaiseDesc')}</div>
                 </div>
-                <button class="btn ${g.lawyerRaise ? 'btn-primary' : 'btn-outline'}" onclick="Engine.toggleLawyerRaise()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${g.lawyerRaise ? 'Prim Veriliyor ✅' : 'Prim/Zam Ver'}</button>
+                <button class="btn ${g.lawyerRaise ? 'btn-primary' : 'btn-outline'}" onclick="Engine.toggleLawyerRaise()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${g.lawyerRaise ? t('lawyerRaiseBtnOn') : t('lawyerRaiseBtnOff')}</button>
             </div>
         </div>`;
         
-        h += `<div class="page-header mt-2" style="font-size:1.2rem;">💼 Avukat Kiralama</div><div style="display:flex; flex-direction:column; gap:10px;">`;
+        h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('lawyerHireTitle')}</div><div style="display:flex; flex-direction:column; gap:10px;">`;
         lawyers.forEach((l, idx) => {
             let isCurrent = g.lawyerLevel === idx;
             h += `<div class="item-row" style="border: ${isCurrent ? '2px solid var(--success)' : '1px solid #ddd'}; background: ${isCurrent ? 'rgba(46, 204, 113, 0.1)' : 'white'};">
                 <div class="item-info">
                     <span class="item-title">${l.name} ${isCurrent ? '✅' : ''}</span>
                     <span class="item-sub">${l.desc}</span>
-                    <span class="item-sub" style="color:var(--danger); font-weight:bold;">${l.fee > 0 ? 'Günlük: ' + App.formatMoney(l.fee) : 'Ücretsiz'}</span>
+                    <span class="item-sub" style="color:var(--danger); font-weight:bold;">${l.fee > 0 ? (t('wageDaily').replace('{cost}', App.formatMoney(l.fee))) : 'Free'}</span>
                 </div>
                 <div class="item-action">
-                    <button class="btn ${isCurrent ? 'btn-green' : 'btn-outline'}" onclick="Engine.hireLawyer(${idx})" ${isCurrent ? 'disabled' : ''}>${isCurrent ? 'Mevcut' : 'Kirala'}</button>
+                    <button class="btn ${isCurrent ? 'btn-green' : 'btn-outline'}" onclick="Engine.hireLawyer(${idx})" ${isCurrent ? 'disabled' : ''}>${isCurrent ? t('lawyerCurrentBadge') : t('hireBtn')}</button>
                 </div>
             </div>`;
         });
         h += `</div>`;
 
-        h += `<div class="page-header mt-2" style="font-size:1.2rem; margin-top:20px;">🚨 Bekleyen Davalar</div>`;
+        h += `<div class="page-header mt-2" style="font-size:1.2rem; margin-top:20px;">${t('lawsuitsTitle')}</div>`;
         if (g.lawsuits.length === 0) {
-            h += `<div class="panel text-center" style="color:var(--success); font-weight:bold;">Şirkete açılmış bir dava yok!</div>`;
+            h += `<div class="panel text-center" style="color:var(--success); font-weight:bold;">${t('noLawsuitsMsg')}</div>`;
         } else {
             g.lawsuits.forEach((law, idx) => {
+                let lawsuitName = tLawsuit(law.type);
                 h += `<div class="item-row" style="background:rgba(231, 76, 60, 0.1); border:1px solid rgba(231, 76, 60, 0.3);">
                     <div class="item-info">
-                        <span class="item-title" style="color:var(--danger);">${law.type}</span>
-                        <span class="item-sub">Tazminat Talebi: <b>${App.formatMoney(law.cost)}</b></span>
-                        <span class="item-sub">Mahkemeye Kalan: <b>${law.daysLeft} Gün</b></span>
+                        <span class="item-title" style="color:var(--danger);">${lawsuitName}</span>
+                        <span class="item-sub">${t('claimAmount')}: <b>${App.formatMoney(law.cost)}</b></span>
+                        <span class="item-sub">${t('daysUntilTrial')}: <b>${law.daysLeft} ${t('day')}</b></span>
                     </div>
                     <div class="item-action" style="flex-direction:row; align-items:center; gap:6px;">
-                        <button class="btn btn-purple" style="padding:6px 10px; font-weight:bold;" onclick="Engine.rollLawsuitDice(${idx})">🎲 Zar At<br><small>(Duruşma)</small></button>
-                        <button class="btn btn-warning" onclick="Engine.settleLawsuit(${idx})">Anlaş<br>(${App.formatMoney(law.cost)})</button>
+                        <button class="btn btn-purple" style="padding:6px 10px; font-weight:bold;" onclick="Engine.rollLawsuitDice(${idx})">${t('trialDiceBtn')}</button>
+                        <button class="btn btn-warning" onclick="Engine.settleLawsuit(${idx})">${t('settleLawsuitBtn').replace('{cost}', App.formatMoney(law.cost))}</button>
                     </div>
                 </div>`;
             });
@@ -739,49 +745,51 @@ const UI = {
         if (!g.foundations) g.foundations = { children: 0, green: 0, tech_edu: 0, animal: 0 };
         
         let h = `<div class="panel text-center mb-2" style="background:linear-gradient(135deg, #1e3799, #0c2461); color:white; padding:15px;">
-            <div style="font-size:1.4rem; font-weight:900;">🤝 İlişki Yönetimi & Hayırseverlik</div>
-            <div style="font-size:0.85rem; opacity:0.9;">Masadaki güçlerle ilişkilerini koru ve vakıf bağışlarıyla kalıcı itibar kazan!</div>
+            <div style="font-size:1.4rem; font-weight:900;">${t('relationsTitle')}</div>
+            <div style="font-size:0.85rem; opacity:0.9;">${t('relationsSub')}</div>
         </div>`;
 
         // BÖLÜM 1: GÜÇ ODAKLARI VE ETKİLEŞİM / MİNİ OYUNLAR
-        h += `<div class="page-header mt-2" style="font-size:1.15rem;">🏢 Masadaki Güçler (Mini Oyunlar & Kararlar)</div>`;
+        h += `<div class="page-header mt-2" style="font-size:1.15rem;">${t('powersHeader')}</div>`;
 
         let instKeys = ['wholesaler', 'minister', 'mafia'];
         instKeys.forEach(instId => {
             let inst = (typeof GameData !== 'undefined' && GameData.institutions) ? GameData.institutions[instId] : null;
             if (!inst) return;
+            let instData = tInstitution(instId);
             let val = g.relations[instId] !== undefined ? g.relations[instId] : inst.defaultVal;
             let color = val >= 75 ? 'var(--success)' : (val < 30 ? 'var(--danger)' : '#f39c12');
-            let status = val >= 75 ? 'Mükemmel' : (val < 30 ? 'Düşmanca' : 'Dengeli');
+            let status = val >= 75 ? t('statusExcellent') : (val < 30 ? t('statusHostile') : t('statusBalanced'));
 
             h += `<div class="panel mb-3" style="border:1px solid rgba(0,0,0,0.08); padding:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <span style="font-weight:900; font-size:1.05rem;">${inst.icon} ${inst.name}</span>
+                    <span style="font-weight:900; font-size:1.05rem;">${inst.icon} ${instData.name}</span>
                     <span style="color:${color}; font-weight:bold; font-size:0.9rem;">${val}/100 (${status})</span>
                 </div>
                 <div class="progress-bar mb-2" style="height:8px; background:rgba(0,0,0,0.08); border-radius:4px;">
                     <div class="progress-fill" style="width:${val}%; background:${color}; border-radius:4px;"></div>
                 </div>
-                <div style="font-size:0.82rem; color:var(--text-dark); margin-bottom:10px; line-height:1.4;">${inst.desc}</div>`;
+                <div style="font-size:0.82rem; color:var(--text-dark); margin-bottom:10px; line-height:1.4;">${instData.desc}</div>`;
 
             if (inst.minigame) {
                 h += `<div style="background:rgba(0,0,0,0.03); border:1px dashed #ccc; border-radius:8px; padding:10px; margin-top:8px;">
-                    <div style="font-weight:bold; font-size:0.85rem; color:var(--primary-dark); margin-bottom:4px;">${inst.minigame.title}</div>
-                    <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">${inst.minigame.desc}</div>`;
+                    <div style="font-weight:bold; font-size:0.85rem; color:var(--primary-dark); margin-bottom:4px;">${instData.title || inst.minigame.title}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">${instData.descMini || inst.minigame.desc}</div>`;
 
                 if (inst.minigame.isDice) {
                     h += `<div style="text-align:center;">
                         <button class="btn btn-warning" onclick="Engine.playRelationMinigame('${instId}', 0)" style="width:100%; font-weight:bold;">
-                            🎲 Zarları At! (Kazan: +25 İlişki & $10,000 / Kaybet: -15 & -$5,000)
+                            ${t('diceRollMafiaBtn')}
                         </button>
                     </div>`;
                 } else if (inst.minigame.options) {
                     h += `<div style="display:flex; flex-direction:column; gap:6px;">`;
                     inst.minigame.options.forEach((opt, oIdx) => {
-                        let costText = opt.cost ? ` (Maliyet: ${App.formatMoney(opt.cost)})` : '';
-                        let chanceText = opt.cost ? 'Garantili' : `%${Math.round(opt.successRate * 100)} Şans`;
+                        let optData = (instData.options && instData.options[oIdx]) ? instData.options[oIdx] : opt;
+                        let costText = opt.cost ? ` (${t('costUnit')}: ${App.formatMoney(opt.cost)})` : '';
+                        let chanceText = opt.cost ? t('chanceGuaranteed') : t('chancePct').replace('{n}', Math.round(opt.successRate * 100));
                         h += `<button class="btn btn-outline" onclick="Engine.playRelationMinigame('${instId}', ${oIdx})" style="text-align:left; font-size:0.8rem; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-                            <span><b>${opt.name}</b>${costText}</span>
+                            <span><b>${optData.name}</b>${costText}</span>
                             <span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${chanceText}</span>
                         </button>`;
                     });
@@ -794,12 +802,13 @@ const UI = {
         });
 
         // BÖLÜM 2: VAKIFLAR VE HAYIRSEVERLİK
-        h += `<div class="page-header mt-3" style="font-size:1.15rem;">🌱 Hayırseverlik & Vakıflar (Sosyal Yatırım)</div>
-        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Bağış yaparak vakıfları geliştir; her seviye şirketinize kalıcı itibar ve pasif avantajlar sağlar.</div>`;
+        h += `<div class="page-header mt-3" style="font-size:1.15rem;">${t('charityHeader')}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">${t('charitySub')}</div>`;
 
         if (typeof GameData !== 'undefined' && GameData.foundations) {
             for (let fId in GameData.foundations) {
                 let f = GameData.foundations[fId];
+                let fData = tFoundation(fId);
                 let curLvl = (g.foundations && g.foundations[fId] !== undefined) ? g.foundations[fId] : 0;
                 let maxLvl = f.maxLevel || 10;
                 let isMax = curLvl >= maxLvl;
@@ -807,31 +816,32 @@ const UI = {
                 let pct = Math.floor((curLvl / maxLvl) * 100);
 
                 let currentEffectStr = '';
+                let isEn = App.state.lang === 'en';
                 if (curLvl === 0) {
-                    currentEffectStr = 'Henüz bağış yapılmadı.';
+                    currentEffectStr = t('noDonationsYet');
                 } else {
                     let parts = [];
-                    if (f.effectPerLevel.pop) parts.push(`+${curLvl * f.effectPerLevel.pop} Popülarite`);
-                    if (f.effectPerLevel.demandPercent) parts.push(`+%${curLvl * f.effectPerLevel.demandPercent} Talep`);
-                    if (f.effectPerLevel.taxDiscountPercent) parts.push(`%${curLvl * f.effectPerLevel.taxDiscountPercent} Vergi İndirimi`);
-                    if (f.effectPerLevel.dailyRP) parts.push(`+${curLvl * f.effectPerLevel.dailyRP} Günlük RP`);
-                    if (f.effectPerLevel.corporateRep) parts.push(`+${curLvl * f.effectPerLevel.corporateRep} Kurumsal REP`);
-                    currentEffectStr = `Aktif Bonus: ` + parts.join(', ');
+                    if (f.effectPerLevel.pop) parts.push(`+${curLvl * f.effectPerLevel.pop} ${isEn ? 'Popularity' : 'Popülarite'}`);
+                    if (f.effectPerLevel.demandPercent) parts.push(`+${curLvl * f.effectPerLevel.demandPercent}% ${isEn ? 'Demand' : 'Talep'}`);
+                    if (f.effectPerLevel.taxDiscountPercent) parts.push(`${curLvl * f.effectPerLevel.taxDiscountPercent}% ${isEn ? 'Tax Discount' : 'Vergi İndirimi'}`);
+                    if (f.effectPerLevel.dailyRP) parts.push(`+${curLvl * f.effectPerLevel.dailyRP} ${isEn ? 'Daily RP' : 'Günlük RP'}`);
+                    if (f.effectPerLevel.corporateRep) parts.push(`+${curLvl * f.effectPerLevel.corporateRep} ${isEn ? 'Corporate REP' : 'Kurumsal REP'}`);
+                    currentEffectStr = `${t('activeBonus')} ` + parts.join(', ');
                 }
 
                 h += `<div class="panel mb-2" style="border:1px solid rgba(0,0,0,0.08); padding:12px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <span style="font-weight:900; font-size:1.05rem;">${f.icon} ${f.name}</span>
-                        <span style="font-weight:bold; font-size:0.85rem; color:var(--primary);">Seviye ${curLvl} / ${maxLvl}</span>
+                        <span style="font-weight:900; font-size:1.05rem;">${f.icon} ${fData.name}</span>
+                        <span style="font-weight:bold; font-size:0.85rem; color:var(--primary);">${t('levelText')} ${curLvl} / ${maxLvl}</span>
                     </div>
                     <div class="progress-bar mb-2" style="height:6px; background:rgba(0,0,0,0.06); border-radius:3px;">
                         <div class="progress-fill" style="width:${pct}%; background:var(--success); border-radius:3px;"></div>
                     </div>
-                    <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">${f.desc}</div>
-                    <div style="font-size:0.8rem; color:var(--primary-dark); font-weight:bold; margin-bottom:4px;">💡 ${f.effectDesc}</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">${fData.desc}</div>
+                    <div style="font-size:0.8rem; color:var(--primary-dark); font-weight:bold; margin-bottom:4px;">💡 ${fData.effectDesc}</div>
                     <div style="font-size:0.78rem; color:var(--success-dark); font-style:italic; margin-bottom:10px;">${currentEffectStr}</div>
                     <div style="text-align:right;">
-                        ${isMax ? '<button class="btn btn-sm" disabled style="background:var(--success); color:white;">Maksimum Seviye</button>' : `<button class="btn btn-green btn-sm" onclick="Engine.donateFoundation('${fId}')">🌟 Bağış Yap (${App.formatMoney(cost)})</button>`}
+                        ${isMax ? `<button class="btn btn-sm" disabled style="background:var(--success); color:white;">${t('maxLevelBadge')}</button>` : `<button class="btn btn-green btn-sm" onclick="Engine.donateFoundation('${fId}')">${t('donateBtnAction').replace('{cost}', App.formatMoney(cost))}</button>`}
                     </div>
                 </div>`;
             }
@@ -843,7 +853,7 @@ const UI = {
     renderReviewsPanel: () => {
         let g = App.state.g; let h = '';
         if(!g.reviews || g.reviews.length === 0) {
-            h += `<div class="panel text-center mb-2" style="color:var(--text-light); font-weight:bold;">Henüz hiç müşteri yorumu yok. İlk gününü bitirdiğinde buraya yorumlar düşecek!</div>`;
+            h += `<div class="panel text-center mb-2" style="color:var(--text-light); font-weight:bold;">${t('noReviewsMsg')}</div>`;
         } else {
             g.reviews.forEach((rev) => {
                 let ratingCount = (rev.text.match(/⭐/g) || []).length;
@@ -860,17 +870,17 @@ const UI = {
     renderCargoPanel: () => {
         let g = App.state.g; let h = '';
         if(!g.incomingCargo || g.incomingCargo.length === 0) {
-            h += `<div class="panel text-center mb-2" style="color:var(--text-light); font-weight:bold;">Şu an yolda olan bir kargo yok. Siparişlerinizi Mağaza sekmesinden verebilirsiniz.</div>`;
+            h += `<div class="panel text-center mb-2" style="color:var(--text-light); font-weight:bold;">${t('noCargoMsg')}</div>`;
         } else {
             g.incomingCargo.forEach((c) => {
-                let p = GameData.products[c.id];
+                let pName = tProduct(c.id);
                 h += `<div class="item-row" style="background:rgba(52, 152, 219, 0.05); border:1px solid rgba(52, 152, 219, 0.3);">
                     <div class="item-info">
-                        <span class="item-title">📦 ${p.name} (x${c.qty})</span>
-                        <span class="item-sub">Toplam Hacim: <b>${c.space} br</b></span>
+                        <span class="item-title">📦 ${pName} (x${c.qty})</span>
+                        <span class="item-sub">${t('totalSpaceLabel')} <b>${c.space} br</b></span>
                     </div>
                     <div class="item-action" style="font-weight:900; color:var(--primary); font-size:1.1rem; text-align:center;">
-                        Kalan:<br>${c.daysLeft} Gün
+                        ${t('cargoDaysLeft').replace('{days}', c.daysLeft)}
                     </div>
                 </div>`;
             });
@@ -884,22 +894,21 @@ const UI = {
         let rivalShare = 100.0 - myShare;
 
         h += `<div class="panel text-center mb-2" style="background:var(--primary-dark); color:white;">
-            <div style="font-size:1.4rem; font-weight:900;">📊 Pazar Payı Raporu</div>
-            <div style="font-size:0.9rem; opacity:0.9;">Piyasadaki etkinliğini ve rakiplerini gör.</div>
+            <div style="font-size:1.4rem; font-weight:900;">${t('marketShareReportTitle')}</div>
+            <div style="font-size:0.9rem; opacity:0.9;">${t('marketShareReportSub')}</div>
         </div>`;
 
         h += `<div class="panel mb-2">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-weight:900; font-size:1.1rem; color:var(--success);">Sen (%${myShare.toFixed(1)})</span>
-                <span style="font-weight:900; font-size:1.1rem; color:var(--danger);">Rakip (%${rivalShare.toFixed(1)})</span>
+                <span style="font-weight:900; font-size:1.1rem; color:var(--success);">${t('youLabel')} (%${myShare.toFixed(1)})</span>
+                <span style="font-weight:900; font-size:1.1rem; color:var(--danger);">${t('rivalLabel')} (%${rivalShare.toFixed(1)})</span>
             </div>
             <div class="progress-bar mb-2" style="height:15px; border-radius:10px; background:var(--danger); display:flex;">
                 <div class="progress-fill" style="width:${myShare}%; background:var(--success); border-radius:10px 0 0 10px;"></div>
             </div>
             <div style="font-size:0.85rem; color:var(--text-dark);">
                 <ul>
-                    <li>Pazar payını artırmak için fiyatlarını düşürebilir, popülariteni yüksek tutabilirsin.</li>
-                    <li>Rakibini yenersen pazarı tekeline alırsın!</li>
+                    <li>${t('marketTips')}</li>
                 </ul>
             </div>
         </div>`;
@@ -907,16 +916,16 @@ const UI = {
         if (!g.rivalDefeated) {
             h += `<div class="item-row mt-2" style="background:#fff3cd; border:1px solid #ffeeba;">
                 <div class="item-info">
-                    <span class="item-title" style="color:#856404;">🏆 Büyük Satın Alma</span>
-                    <span class="item-sub">Rakibini tamamen piyasadan silmek için Pazar Payının <b>%99</b>, bakiyenin ise <b>$1,000,000</b> olması gerekir.</span>
+                    <span class="item-title" style="color:#856404;">${t('hostileTakeoverTitle')}</span>
+                    <span class="item-sub">${t('hostileTakeoverDesc')}</span>
                 </div>
                 <div class="item-action">
-                    <button class="btn btn-warning" onclick="Engine.buyoutRival()">Rakibi Satın Al</button>
+                    <button class="btn btn-warning" onclick="Engine.buyoutRival()">${t('hostileTakeoverBtn')}</button>
                 </div>
             </div>`;
         } else {
             h += `<div class="panel text-center mt-2" style="color:var(--success); font-weight:900; font-size:1.1rem;">
-                🏆 RAKİP YOK EDİLDİ! PİYASANIN TEK HAKİMİ SENSİN!
+                ${t('monopolyAchieved')}
             </div>`;
         }
         document.getElementById('market-view').innerHTML = h;
@@ -925,25 +934,41 @@ const UI = {
     renderUpgradesPanel: () => {
         let g = App.state.g; let h = '';
         let nextLevel = g.buildingLevel + 1;
-        if (GameData.buildings[nextLevel]) { let b = GameData.buildings[nextLevel]; h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">${b.name} Binasına Geç</span><span class="item-sub">Maliyet: ${App.formatMoney(b.cost)}</span></div><div class="item-action"><button class="btn btn-primary" onclick="Engine.upgradeBuilding()">Geliştir</button></div></div>`; } 
-        else { h += `<div class="panel text-center mb-2" style="font-size:1.1rem; color:var(--success);"><strong>En lüks binadasın!</strong></div>`; }
+        if (GameData.buildings[nextLevel]) {
+            let b = GameData.buildings[nextLevel];
+            let bName = tBuilding(nextLevel).name;
+            h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">${t('buildingUpgradeCard').replace('{name}', bName)}</span><span class="item-sub">${t('costUnit')}: ${App.formatMoney(b.cost)}</span></div><div class="item-action"><button class="btn btn-primary" onclick="Engine.upgradeBuilding()">${t('upgradeBtn')}</button></div></div>`;
+        } else {
+            h += `<div class="panel text-center mb-2" style="font-size:1.1rem; color:var(--success);"><strong>${t('maxBuildingBadge')}</strong></div>`;
+        }
         
-        h += '<div class="page-header mt-2" style="font-size:1.2rem;">📦 Depo Kapasitesi Genişletmeleri</div>';
+        h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('storageUpgradesTitle')}</div>`;
         if (!g.upgrades) g.upgrades = {};
         for (let k in GameData.upgrades) {
             let u = GameData.upgrades[k];
+            let uName = tUpgrade(k);
             let isBought = !!g.upgrades[k];
-            h += `<div class="item-row"><div class="item-info"><span class="item-title">${u.name}</span><span class="item-sub">Kapasite: +${u.cap} br</span></div><div class="item-action">${isBought ? '<button class="btn btn-green" disabled>Alındı ✅</button>' : `<button class="btn btn-warning" onclick="Engine.buyStorage('${k}')">Satın Al (${App.formatMoney(u.cost)})</button>`}</div></div>`;
+            h += `<div class="item-row"><div class="item-info"><span class="item-title">${uName}</span><span class="item-sub">${t('spaceUnit')}: +${u.cap} br</span></div><div class="item-action">${isBought ? `<button class="btn btn-green" disabled>${t('unlockedTag')} ✅</button>` : `<button class="btn btn-warning" onclick="Engine.buyStorage('${k}')">${t('buyBtn')} (${App.formatMoney(u.cost)})</button>`}</div></div>`;
         }
 
-        h += '<div class="page-header mt-2" style="font-size:1.2rem;">🚚 Lojistik Filosu</div>';
-        for (let k in g.fleet) { let f = g.fleet[k]; h += `<div class="item-row"><div class="item-info"><span class="item-title">${f.name} (${f.count} Adet)</span><span class="item-sub">Kapasite: +${f.capacity}</span></div><div class="item-action"><button class="btn btn-green" onclick="Engine.buyVehicle('${k}')">Satın Al (${App.formatMoney(f.cost)})</button></div></div>`; }
+        h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('fleetLogisticsTitle')}</div>`;
+        for (let k in g.fleet) {
+            let f = g.fleet[k];
+            let fName = tFleet(k).name;
+            h += `<div class="item-row"><div class="item-info"><span class="item-title">${fName} (${f.count} ${t('stockLabel')})</span><span class="item-sub">${t('spaceUnit')}: +${f.capacity}</span></div><div class="item-action"><button class="btn btn-green" onclick="Engine.buyVehicle('${k}')">${t('buyBtn')} (${App.formatMoney(f.cost)})</button></div></div>`;
+        }
         
-        h += '<div class="page-header mt-2" style="font-size:1.2rem;">📢 Pazarlama & Reklam</div>';
-        if (g.marketingDaysLeft > 0) h += `<div class="panel text-center"><strong>Kampanya Aktif! (Kalan: ${g.marketingDaysLeft} Gün)</strong></div>`;
-        else { for (let k in GameData.marketing) h += `<div class="item-row marketing"><div class="item-info"><span class="item-title">${GameData.marketing[k].name}</span><span class="item-sub">Etki: +${GameData.marketing[k].pop} Popülarite</span></div><div class="item-action"><button class="btn btn-primary" onclick="Engine.startCampaign('${k}')">Başlat (${App.formatMoney(GameData.marketing[k].cost)})</button></div></div>`; }
+        h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('marketingTitle')}</div>`;
+        if (g.marketingDaysLeft > 0) {
+            h += `<div class="panel text-center"><strong>${t('marketingActive').replace('{days}', g.marketingDaysLeft)}</strong></div>`;
+        } else {
+            for (let k in GameData.marketing) {
+                let mData = tMarketing(k);
+                h += `<div class="item-row marketing"><div class="item-info"><span class="item-title">${mData.name}</span><span class="item-sub">${t('headerPop')}: +${GameData.marketing[k].pop}</span></div><div class="item-action"><button class="btn btn-primary" onclick="Engine.startCampaign('${k}')">${t('marketingStartBtn').replace('{cost}', App.formatMoney(GameData.marketing[k].cost))}</button></div></div>`;
+            }
+        }
         
-        h += `<div class="page-header mt-2" style="font-size:1.2rem;">👑 Franchise (Prestij)</div><div class="panel text-center"><span>Şu anki Prestij (FP): <strong style="font-size:1.2rem;">${g.franchisePoints}</strong></span><br><button class="btn btn-purple mt-2" onclick="Engine.doPrestige()">Şirketi Devret & Prestij Yap</button></div>`;
+        h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('prestigeEmpireTitle')}</div><div class="panel text-center"><span>${t('currentPrestigeFP')} <strong style="font-size:1.2rem;">${g.franchisePoints}</strong></span><br><button class="btn btn-purple mt-2" onclick="Engine.doPrestige()">${t('doPrestigeBtn')}</button></div>`;
         document.getElementById('upgrades-view').innerHTML = h;
     },
 
@@ -952,33 +977,35 @@ const UI = {
         if(!g.factory) g.factory = { owned: false, level: 1, activeItem: null };
         if(!g.factory.owned) {
             h += `<div class="panel text-center" style="padding:20px;">
-                    <h3 style="color:var(--warning);">Kendi Fabrikanı Kur!</h3>
-                    <p class="text-muted mb-2" style="font-size:1.1rem;">Toptancıya para yedirme. Ürünleri <strong>%70 daha ucuza</strong> mal et!</p>
-                    <button class="btn btn-massive btn-warning" onclick="Engine.buyFactory()">Fabrika Kur ($50,000)</button>
+                    <h3 style="color:var(--warning);">${t('buyFactoryTitle')}</h3>
+                    <p class="text-muted mb-2" style="font-size:1.1rem;">${t('buyFactoryDesc')}</p>
+                    <button class="btn btn-massive btn-warning" onclick="Engine.buyFactory()">${t('buyFactoryBtn')}</button>
                   </div>`;
         } else {
             let upgCost = g.factory.level * 75000;
             let spaceLimit = g.factory.level * 100;
             h += `<div class="panel">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #eee; padding-bottom:10px;">
-                        <span style="font-weight:900; font-size:1.3rem; color:var(--primary-dark);">🏭 Seviye ${g.factory.level} Fabrika</span>
-                        <button class="btn btn-green" onclick="Engine.upgradeFactory()">Geliştir (${App.formatMoney(upgCost)})</button>
+                        <span style="font-weight:900; font-size:1.3rem; color:var(--primary-dark);">${t('factoryTierHeader').replace('{lvl}', g.factory.level)}</span>
+                        <button class="btn btn-green" onclick="Engine.upgradeFactory()">${t('upgradeBtn')} (${App.formatMoney(upgCost)})</button>
                     </div>
                     <div class="settings-row">
-                        <label style="font-size:1.1rem; font-weight:bold;">Üretim Bandı:</label>
+                        <label style="font-size:1.1rem; font-weight:bold;">${t('assemblyLine')}</label>
                         <select class="fancy-select" onchange="Engine.setFactoryItem(this.value)">
-                            <option value="">-- Üretimi Durdur --</option>`;
+                            <option value="">${t('factoryStopOpt')}</option>`;
             for(let k in GameData.products) {
                 if(g.unlocked[k]) {
                     let p = GameData.products[k];
+                    let pName = tProduct(k);
                     let qty = Math.max(1, Math.floor(spaceLimit / p.space));
                     let cost = Math.floor(p.buy * 0.3) * qty;
-                    h += `<option value="${k}" ${g.factory.activeItem===k?'selected':''}>${p.name} (${qty} adet/gün | Maliyet: ${App.formatMoney(cost)})</option>`;
+                    let rateDesc = t('factoryRateDesc').replace('{qty}', qty).replace('{cost}', App.formatMoney(cost));
+                    h += `<option value="${k}" ${g.factory.activeItem===k?'selected':''}>${pName} (${rateDesc})</option>`;
                 }
             }
             h += `      </select>
                     </div>
-                    <small class="text-muted mt-2" style="display:block; font-size:0.9rem;">* Fabrika her gün sonu otomatik olarak ürünü üretip doğrudan depona yollar.</small>
+                    <small class="text-muted mt-2" style="display:block; font-size:0.9rem;">${t('factoryFootnoteText')}</small>
                   </div>`;
         }
         document.getElementById('factory-view').innerHTML = h;
@@ -1006,13 +1033,13 @@ const UI = {
     renderPenthousePanel: () => {
         let g = App.state.g;
         if (!g.penthouse) g.penthouse = {};
-        const items = [
-            { id: 'espresso', icon: '☕', name: 'Altın Espresso Makinesi', cost: 5000, desc: 'Tüm mağazada müşteri talebi ve satış hızı +%8 artar.' },
-            { id: 'chair', icon: '💆', name: 'İtalyan Masaj Koltuğu', cost: 12000, desc: 'Her gün sonu Patron Morali otomatik +3 yenilenir.' },
-            { id: 'parrot', icon: '🦜', name: "Şans Papağanı 'Korsan'", cost: 30000, desc: '%25 şansla her gün zengin bir turistten +$5,000 ek hasılat!' },
-            { id: 'dojo', icon: '🥋', name: 'Özel Zen Bahçesi & Dojo', cost: 75000, desc: 'Duruşma zarlarında her zaman +1 ekstra zar avantajı.' },
-            { id: 'helipad', icon: '🚁', name: 'Çatı Katı Helikopter Pisti', cost: 200000, desc: 'Uluslararası VIP ihaleler; B2B kazançları %40 artar!' },
-            { id: 'vault', icon: '🔐', name: 'Mücevher Kasası & Kripto Cüzdanı', cost: 500000, desc: 'Kasa eksiye düşerse anında $50,000 acil kurtarma fonu açar!' }
+        const itemIds = [
+            { id: 'espresso', icon: '☕', cost: 5000 },
+            { id: 'chair', icon: '💆', cost: 12000 },
+            { id: 'parrot', icon: '🦜', cost: 30000 },
+            { id: 'dojo', icon: '🥋', cost: 75000 },
+            { id: 'helipad', icon: '🚁', cost: 200000 },
+            { id: 'vault', icon: '🔐', cost: 500000 }
         ];
 
         let h = `<div class="panel text-center mb-2" style="background:linear-gradient(135deg, #f39c12, #d35400); color:white; padding:15px;">
@@ -1020,17 +1047,18 @@ const UI = {
             <div style="font-size:0.85rem; opacity:0.9;">${t('penthouseSub')}</div>
         </div>`;
 
-        items.forEach(it => {
+        itemIds.forEach(it => {
+            let pInfo = tPenthouseItem(it.id);
             let owned = !!g.penthouse[it.id];
             h += `<div class="panel mb-2" style="display:flex; justify-content:space-between; align-items:center; gap:10px; border:${owned ? '2px solid var(--success)' : '1px solid var(--border)'}; background:${owned ? 'rgba(46,204,113,0.08)' : 'var(--bg)'};">
                 <div style="font-size:2.5rem; min-width:50px; text-align:center;">${it.icon}</div>
                 <div style="flex:1;">
-                    <div style="font-weight:900; font-size:1.05rem; color:var(--primary-dark);">${it.name} ${owned ? '✅' : ''}</div>
-                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">${it.desc}</div>
-                    <div style="font-size:0.85rem; font-weight:bold; color:var(--danger); margin-top:4px;">${owned ? '<span class="green">Penthouse Koleksiyonunda Aktif</span>' : App.formatMoney(it.cost)}</div>
+                    <div style="font-weight:900; font-size:1.05rem; color:var(--primary-dark);">${pInfo.name} ${owned ? '✅' : ''}</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">${pInfo.desc}</div>
+                    <div style="font-size:0.85rem; font-weight:bold; color:var(--danger); margin-top:4px;">${owned ? `<span class="green">${t('penthouseActiveCollection')}</span>` : App.formatMoney(it.cost)}</div>
                 </div>
                 <div>
-                    ${owned ? '<button class="btn btn-green btn-sm" disabled>Sahipsin ✅</button>' : `<button class="btn btn-warning btn-sm" onclick="Engine.buyPenthouseItem('${it.id}')">Satın Al</button>`}
+                    ${owned ? `<button class="btn btn-green btn-sm" disabled>${t('ownedBadge')}</button>` : `<button class="btn btn-warning btn-sm" onclick="Engine.buyPenthouseItem('${it.id}')">${t('buyBtn')}</button>`}
                 </div>
             </div>`;
         });
@@ -1047,25 +1075,26 @@ const UI = {
 
         if (g.espionageActive) {
             h += `<div class="panel mb-2" style="background:rgba(52,152,219,0.15); border:1px solid var(--primary); text-align:center; font-weight:bold;">
-                🕵️ Aktif Operasyon: Fiyat Casusu devrede! (Kalan: ${g.espionageActive.daysLeft} Gün - Tüm alışlarda %15 indirim)
+                ${t('espionageActiveSpy').replace('{days}', g.espionageActive.daysLeft)}
             </div>`;
         }
 
-        const missions = [
-            { type: 'cost', icon: '📉', name: 'Fiyat Casusu Sızdır', cost: 3000, desc: 'Toptancı tedarik zincirine sızar. 5 gün boyunca tüm ürün alış fiyatları %15 ucuzlar.' },
-            { type: 'sabotage', icon: '🐀', name: 'Gizli Denetim & Hijyen Sabotajı', cost: 10000, desc: "Rakibe ani sağlık müfettişi salar! %80 şansla pazar payından +%5 kaparsın." },
-            { type: 'headhunt', icon: '👔', name: 'Rakip Müdürünü Transfer Et', cost: 35000, desc: 'Rakibin baş yöneticisini ayartırsın! Rakip pazar payı %10 çöker, 1x Müdür şirketine geçer.' }
+        const missionDefs = [
+            { type: 'cost', icon: '📉', cost: 3000 },
+            { type: 'sabotage', icon: '🐀', cost: 10000 },
+            { type: 'headhunt', icon: '👔', cost: 35000 }
         ];
 
-        missions.forEach(m => {
+        missionDefs.forEach(m => {
+            let mInfo = tEspionage(m.type);
             h += `<div class="panel mb-2" style="border:1px solid var(--border); padding:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <span style="font-weight:900; font-size:1.05rem;">${m.icon} ${m.name}</span>
+                    <span style="font-weight:900; font-size:1.05rem;">${m.icon} ${mInfo.name}</span>
                     <span style="color:var(--danger); font-weight:bold; font-size:0.95rem;">${App.formatMoney(m.cost)}</span>
                 </div>
-                <div style="font-size:0.82rem; color:var(--text-dark); margin-bottom:10px;">${m.desc}</div>
+                <div style="font-size:0.82rem; color:var(--text-dark); margin-bottom:10px;">${mInfo.desc}</div>
                 <div style="text-align:right;">
-                    <button class="btn btn-purple btn-sm" onclick="Engine.startEspionage('${m.type}')">Operasyonu Başlat (${App.formatMoney(m.cost)})</button>
+                    <button class="btn btn-purple btn-sm" onclick="Engine.startEspionage('${m.type}')">${t('startEspionageBtn').replace('{cost}', App.formatMoney(m.cost))}</button>
                 </div>
             </div>`;
         });
@@ -1075,25 +1104,26 @@ const UI = {
 
     renderRoadmapPanel: () => {
         let g = App.state.g; let h = `<div class="panel">`;
-        h += `<p class="mb-2"><strong>Mega Mart Tycoon</strong> toplam <strong>150 Seviye</strong> bina geliştirmesi sunar! Şu anki seviyen: <span class="green" style="font-size:1.2rem; font-weight:900;">Sv. ${g.buildingLevel}</span></p>`;
+        h += `<p class="mb-2">${t('roadmapIntro').replace('{n}', `<span class="green" style="font-size:1.2rem; font-weight:900;">${t('level')} ${g.buildingLevel}</span>`)}</p>`;
         
         let start = Math.max(1, g.buildingLevel - 1);
         let end = Math.min(150, start + 8);
         for(let i = start; i <= end; i++) {
             let b = GameData.buildings[i];
+            let bName = tBuilding(i).name;
             let isCurrent = (i === g.buildingLevel);
             let isUnlocked = (i <= g.buildingLevel);
             h += `<div class="item-row" style="${isCurrent?'border:2px solid var(--primary); background:rgba(67,97,238,0.1);':(isUnlocked?'opacity:0.6;':'')}">
                 <div class="item-info">
-                    <span class="item-title">${isUnlocked?'✅':'🔒'} Sv. ${i}: ${b.name}</span>
-                    <span class="item-sub">${isCurrent ? 'ŞU ANKİ BİNAN' : (isUnlocked ? 'Geçildi' : 'Popülarite Katkısı: +'+b.popBoost)}</span>
+                    <span class="item-title">${isUnlocked?'✅':'🔒'} ${t('level')} ${i}: ${bName}</span>
+                    <span class="item-sub">${isCurrent ? t('currentBuildingBadge') : (isUnlocked ? t('clearedBadge') : t('popContribution').replace('{n}', b.popBoost))}</span>
                 </div>
                 <div class="item-action">
                     ${!isUnlocked ? `<span style="font-weight:bold; color:var(--danger); font-size:0.9rem;">${App.formatMoney(b.cost)}</span>` : ''}
                 </div>
             </div>`;
         }
-        if(end < 150) h += `<div class="text-center mt-2" style="font-style:italic; color:#777;">... ve 150. seviyeye kadar daha fazlası!</div>`;
+        if(end < 150) h += `<div class="text-center mt-2" style="font-style:italic; color:#777;">${t('andMoreRoadmap')}</div>`;
         h += `</div>`;
         document.getElementById('roadmap-view').innerHTML = h;
     },
@@ -1128,16 +1158,16 @@ const UI = {
 
             <!-- Tab Contents -->
             <div class="endday-content active" id="tab-view-kasa">
-                ${rep.tabKasa && rep.tabKasa.length > 0 ? rep.tabKasa.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Bugün kasa hareketi olmadı.</div>'}
+                ${rep.tabKasa && rep.tabKasa.length > 0 ? rep.tabKasa.join('') : `<div style="color:var(--text-light); font-style:italic; padding:10px;">${t('emptyKasa')}</div>`}
             </div>
             <div class="endday-content" id="tab-view-haberler">
-                ${rep.tabHaberler && rep.tabHaberler.length > 0 ? rep.tabHaberler.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Bugün önemli bir piyasa veya trend haberi yok.</div>'}
+                ${rep.tabHaberler && rep.tabHaberler.length > 0 ? rep.tabHaberler.join('') : `<div style="color:var(--text-light); font-style:italic; padding:10px;">${t('emptyHaberler')}</div>`}
             </div>
             <div class="endday-content" id="tab-view-hukuk">
-                ${rep.tabHukuk && rep.tabHukuk.length > 0 ? rep.tabHukuk.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Herhangi bir dava veya duruşma gelişmesi yok.</div>'}
+                ${rep.tabHukuk && rep.tabHukuk.length > 0 ? rep.tabHukuk.join('') : `<div style="color:var(--text-light); font-style:italic; padding:10px;">${t('emptyHukuk')}</div>`}
             </div>
             <div class="endday-content" id="tab-view-duyurular">
-                ${rep.tabDuyurular && rep.tabDuyurular.length > 0 ? rep.tabDuyurular.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Özel bir şirket duyurusu bulunmuyor.</div>'}
+                ${rep.tabHukuk && rep.tabDuyurular && rep.tabDuyurular.length > 0 ? rep.tabDuyurular.join('') : `<div style="color:var(--text-light); font-style:italic; padding:10px;">${t('emptyDuyurular')}</div>`}
             </div>
 
             <div class="mt-2 text-center" style="color:var(--success); font-weight:900; font-size:0.85rem;">
@@ -1211,25 +1241,18 @@ document.addEventListener('touchend', () => { UI.dragData.active = null; });
 
 const Tutorial = {
     step: 0,
-    steps: [
-        { title: "👋 MEGA MART'A HOŞ GELDİN!", text: "Sen bu şehrin yeni perakende kralısın! Küçük bir toptancıdan başlayıp dev bir üretim holdingine dönüşmeye hazır mısın?<br><br>Sana temel kuralları öğreteyim..." },
-        { title: "🛒 1. TOPTANCIDAN MAL AL", text: "Alttaki <b>🛒 Toptancı</b> sekmesinden ucuza ürün satın al. Satın aldığın ürünler doğrudan depona gider." },
-        { title: "🏪 2. REYONLARI YÖNET", text: "<b>🏪 Reyonlar</b> sekmesine geçip aldığın ürünün 'fiyat politikasını' belirle. Ucuz fiyat daha hızlı satar ama kar marjın düşer!" },
-        { title: "🚚 3. KARGO FİLOSU (DİKKAT)", text: "Depoda malın olsa bile, günlük ne kadar satabileceğin <b>Kargo Filosu Kapasitene</b> bağlıdır! Satışların yavaşlarsa <b>👔 Yönetim -> 🏢 Geliştirmeler</b> sekmesinden yeni tır veya kamyonet almalısın." },
-        { title: "🧪 4. RP VE AR-GE MERKEZİ", text: "RP (Araştırma Puanı), sen <b>Günü Bitir</b> tuşuna bastıkça o günkü <u>kazancına oranla</u> (%5) otomatik olarak birikir.<br><br>Kazandığın RP'leri <b>👔 Yönetim -> 🧪 Ar-Ge</b> ekranında yeni yetenekler açmak için kullanabilirsin." },
-        { title: "🏦 5. PARAM BİTERSE NE OLACAK?", text: "Eğer paran sıfırlanırsa ve mal alamıyorsan oyun bitmez! <b>👔 Yönetim -> 🏦 Banka</b> ekranına girip anında <b>Kredi Çekebilirsin</b>. <br><br>Artık hazırsın patron, iyi şanslar!" }
-    ],
     show: () => {
-        let s = Tutorial.steps[Tutorial.step];
+        let steps = tTutorial();
+        let s = steps[Tutorial.step] || steps[0];
         let html = `<div style="font-size:1.1rem; line-height:1.5; color:var(--text-dark); text-align:left; padding:10px 0;">${s.text}</div><hr style="border:0; border-top:1px solid #ccc; margin:15px 0;">`;
         html += `<div class="action-grid mt-2" style="grid-template-columns: 1fr 1fr;">`;
-        if(Tutorial.step > 0) html += `<button class="btn" style="background:#555; color:white;" onclick="Tutorial.step--; Tutorial.show();">⬅ Geri</button>`;
+        if(Tutorial.step > 0) html += `<button class="btn" style="background:#555; color:white;" onclick="Tutorial.step--; Tutorial.show();">${t('tutorialBack')}</button>`;
         else html += `<div></div>`;
         
-        if(Tutorial.step < Tutorial.steps.length - 1) {
-            html += `<button class="btn btn-primary" onclick="Tutorial.step++; Tutorial.show();">İleri ➡</button>`;
+        if(Tutorial.step < steps.length - 1) {
+            html += `<button class="btn btn-primary" onclick="Tutorial.step++; Tutorial.show();">${t('tutorialNext')}</button>`;
         } else {
-            html += `<button class="btn btn-green" onclick="Tutorial.finish();">Başla! 🚀</button>`;
+            html += `<button class="btn btn-green" onclick="Tutorial.finish();">${t('tutorialStart')}</button>`;
         }
         html += `</div>`;
         App.showModal(s.title, html);

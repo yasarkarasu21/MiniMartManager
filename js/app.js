@@ -56,8 +56,8 @@ const App = {
         }
     },
     deleteCareer: (slotId) => {
-        App.showModal("Kariyeri Sil", t('delete'), `
-            <button class="btn btn-danger" onclick="App.doDeleteCareer(${slotId})">Evet, Sil</button>
+        App.showModal(t('deleteCareerTitle'), t('delete'), `
+            <button class="btn btn-danger" onclick="App.doDeleteCareer(${slotId})">${t('deleteConfirm')}</button>
             <button class="btn" onclick="App.closeModal()">${t('back')}</button>
         `);
     },
@@ -118,7 +118,7 @@ const App = {
         document.getElementById('modal-title').innerText = title;
         document.getElementById('modal-desc').innerHTML = desc;
         let actions = document.getElementById('modal-actions');
-        if(actions) actions.innerHTML = buttonsHTML || `<button class="btn btn-primary" onclick="App.closeModal()">Tamam</button>`;
+        if(actions) actions.innerHTML = buttonsHTML || `<button class="btn btn-primary" onclick="App.closeModal()">${t('done')}</button>`;
         document.getElementById('modal-overlay').classList.remove('hidden');
     },
     closeModal: () => { document.getElementById('modal-overlay').classList.add('hidden'); }
