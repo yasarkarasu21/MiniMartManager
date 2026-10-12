@@ -52,6 +52,11 @@ const StateManager = {
             trendActive: null, trendDaysLeft: 0, blackMarketActive: false, blackMarketItem: null,
             quests: initialQuests,
             foundations: { children: 0, green: 0, tech_edu: 0, animal: 0 },
+            bossMorale: 80,
+            staffInsurance: false,
+            lawyerRaise: false,
+            loginStreak: 1,
+            lastLoginDate: "",
             skills: {
                 negotiator: { name: 'Pazarlık Ustası', desc: 'Alış fiyatları kalıcı olarak %10 ucuzlar.', cost: 15, unlocked: false },
                 marketingPro: { name: 'Sosyal Medya Dahisi', desc: 'Reklam kampanyaları %50 daha fazla müşteri çeker.', cost: 20, unlocked: false },
@@ -122,12 +127,19 @@ const StateManager = {
             }
         }
 
+        // Boss Morale & Insurance safe merge
+        if (merged.bossMorale === undefined || isNaN(merged.bossMorale)) merged.bossMorale = 80;
+        merged.staffInsurance = !!merged.staffInsurance;
+        merged.lawyerRaise = !!merged.lawyerRaise;
+        if (!merged.loginStreak) merged.loginStreak = 1;
+        if (!merged.lastLoginDate) merged.lastLoginDate = "";
+
         // Level & Stats safe merge
         if (merged.currentLevel === undefined) merged.currentLevel = 1;
         if (!merged.stats) merged.stats = { earned: 0, spent: 0, contractsCompleted: 0 };
         if (merged.stats.contractsCompleted === undefined) merged.stats.contractsCompleted = 0;
 
-        // Quests safe merge
+        // Quests safe merge & Legacy Achievement Recovery
         if (typeof GameData !== 'undefined' && GameData.quests) {
             if (!merged.quests) merged.quests = {};
             for (let qId in GameData.quests) {
@@ -142,6 +154,74 @@ const StateManager = {
                     };
                 }
             }
+
+            // Restore from legacy q1...q15 saves
+            const legacyQuestMap = {
+                q1: 'l1_q3',
+                q2: 'l4_q2',
+                q3: 'l3_q1',
+                q4: 'l6_q1',
+                q5: 'l8_q2',
+                q6: 'l2_q1',
+                q7: 'l3_q2',
+                q8: 'l5_q1',
+                q9: 'l7_q3',
+                q10: 'l9_q1',
+                q11: 'l4_q3',
+                q12: 'l7_q3',
+                q13: 'l7_q1',
+                q14: 'l9_q2',
+                q15: 'l10_q1'
+            };
+
+            if (savedState && savedState.quests) {
+                for (let oldKey in legacyQuestMap) {
+                    let newKey = legacyQuestMap[oldKey];
+                    if (savedState.quests[oldKey] && (savedState.quests[oldKey].done || savedState.quests[oldKey].claimed)) {
+                        if (merged.quests[newKey]) {
+                            merged.quests[newKey].done = true;
+                            merged.quests[newKey].claimed = true;
+                        }
+                    }
+                }
+            }
+
+            // Auto-backfill quests based on player's existing inventory, unlocked, building, fleet
+            for (let qId in GameData.quests) {
+                let qDef = GameData.quests[qId];
+                let qState = merged.quests[qId];
+                if (!qState) continue;
+                if (qState.claimed) continue;
+
+                let alreadyMet = false;
+                if (qDef.condition) {
+                    if (qDef.condition.type === 'unlocked' && merged.unlocked && merged.unlocked[qDef.condition.param]) alreadyMet = true;
+                    if (qDef.condition.type === 'buildingLevel' && merged.buildingLevel >= qDef.condition.value) alreadyMet = true;
+                    if (qDef.condition.type === 'fleet' && merged.fleet && merged.fleet[qDef.condition.param] && merged.fleet[qDef.condition.param].count >= qDef.condition.value) alreadyMet = true;
+                    if (qDef.condition.type === 'staff' && merged.staff && merged.staff[qDef.condition.param] >= qDef.condition.value) alreadyMet = true;
+                    if (qDef.condition.type === 'factory' && merged.factory && merged.factory.owned) alreadyMet = true;
+                    if (qDef.condition.type === 'upgrade' && merged.upgrades && merged.upgrades[qDef.condition.param]) alreadyMet = true;
+                    if (qDef.condition.type === 'inventory' && merged.inventory && merged.inventory[qDef.condition.param] >= qDef.condition.value) alreadyMet = true;
+                    if (qDef.condition.type === 'rivalDefeated' && merged.rivalDefeated) alreadyMet = true;
+                    if (qDef.condition.type === 'money' && merged.money >= qDef.condition.value) alreadyMet = true;
+                }
+                if (alreadyMet) {
+                    qState.done = true;
+                    qState.claimed = true;
+                }
+            }
+
+            // Recalculate true player level
+            let calculatedLvl = 1;
+            for (let l = 1; l <= 10; l++) {
+                let levelQuests = Object.keys(GameData.quests).filter(k => GameData.quests[k].level === l);
+                if (levelQuests.length > 0 && levelQuests.every(k => merged.quests[k] && merged.quests[k].claimed)) {
+                    calculatedLvl = l + 1;
+                } else {
+                    break;
+                }
+            }
+            merged.currentLevel = Math.max(merged.currentLevel || 1, Math.min(10, calculatedLvl));
         }
 
         return merged;

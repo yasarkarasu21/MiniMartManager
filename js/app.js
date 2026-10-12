@@ -42,12 +42,18 @@ const App = {
         App.state.g = StateManager.getSafeState(rawState);
         App.navigate('game');
         App.showNotify("Kariyer Yüklendi!", "success");
+        if (typeof Engine !== 'undefined' && Engine.checkDailyLoginBonus) {
+            Engine.checkDailyLoginBonus();
+        }
     },
     newCareer: (slotId) => {
         App.state.currentSlot = slotId;
         App.state.g = StateManager.getInitialGameState();
         App.saveGame(false);
         App.navigate('game');
+        if (typeof Engine !== 'undefined' && Engine.checkDailyLoginBonus) {
+            Engine.checkDailyLoginBonus();
+        }
     },
     deleteCareer: (slotId) => {
         App.showModal("Kariyeri Sil", "Bu kariyeri tamamen silmek istediğine emin misin? Bu işlem geri alınamaz.", `

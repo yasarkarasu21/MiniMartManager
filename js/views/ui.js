@@ -11,6 +11,7 @@ const UI = {
                 <div class="header-stat" style="cursor:pointer;" onclick="UI.openPanel('reviews')"><span class="stat-icon">⭐</span><span class="stat-text">%<span id="s-pop"></span> Pop.</span></div>
                 <div class="header-stat" style="background:rgba(231,76,60,0.3); cursor:pointer;" onclick="UI.openPanel('cargo')"><span class="stat-icon">🚚</span><span class="stat-text">Kargo: <span id="s-truck"></span></span></div>
                 <div class="header-stat" style="background:rgba(52,152,219,0.3); cursor:pointer;" onclick="UI.openPanel('market')"><span class="stat-icon">📊</span><span class="stat-text">Pazar: %<span id="s-market-share"></span></span></div>
+                <div class="header-stat" id="s-morale-box" style="background:rgba(155,89,182,0.2); cursor:pointer;" onclick="App.showNotify('Patron Morali: %' + (App.state.g.bossMorale || 80) + ' - Satışları ve personel verimini etkiler.')"><span class="stat-icon" id="s-morale-icon">😎</span><span class="stat-text">%<span id="s-morale">80</span></span></div>
             </div>
             <div class="storage-container mt-2">
                 <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:800; margin-bottom:5px;"><span>📦 Depo Doluluğu</span><span id="s-storage"></span></div>
@@ -250,6 +251,16 @@ const UI = {
             document.getElementById('s-truck').innerText = `${g.currentTransportUsed}/${trCap}`;
             document.getElementById('s-market-share').innerText = (g.marketShare || 5.0).toFixed(1);
             
+            let morale = (g.bossMorale !== undefined) ? g.bossMorale : 80;
+            let mEl = document.getElementById('s-morale');
+            if (mEl) mEl.innerText = morale;
+            let mIcon = document.getElementById('s-morale-icon');
+            if (mIcon) mIcon.innerText = morale >= 80 ? '😎' : (morale >= 50 ? '🙂' : (morale >= 25 ? '😐' : '🤬'));
+            let mBox = document.getElementById('s-morale-box');
+            if (mBox) {
+                mBox.style.background = morale >= 70 ? 'rgba(46,204,113,0.25)' : (morale >= 40 ? 'rgba(241,196,15,0.25)' : 'rgba(231,76,60,0.25)');
+            }
+            
             let actStore = g.storageCapacity; if(g.skills && g.skills.storageOpt && g.skills.storageOpt.unlocked) actStore = Math.floor(actStore * 1.2);
             document.getElementById('s-storage').innerText = `${g.currentStorage}/${actStore}`;
             let pct = (g.currentStorage / actStore) * 100;
@@ -357,13 +368,53 @@ const UI = {
     },
 
     renderStaffTab: () => {
-        let g = App.state.g; let h = `<div class="page-header">${t('staff')}</div>`;
+        let g = App.state.g;
+        let total = Engine.getTotalStaffCount();
+        let maxLimit = Engine.getMaxStaffLimit();
+        let fillPct = Math.min(100, (total / maxLimit) * 100);
+
+        let h = `<div class="page-header">${t('staff')}</div>`;
+
+        // Capacity Progress Card
+        h += `<div class="panel mb-2">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <span style="font-weight:900; font-size:1.1rem; color:var(--primary-dark);">👥 Personel Kadrosu</span>
+                <span style="font-weight:bold; font-size:1rem; color:${total >= maxLimit ? 'var(--danger)' : 'var(--primary)'};">${total} / ${maxLimit} Kişi</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${fillPct}%; background:${total >= maxLimit ? 'var(--danger)' : 'var(--primary)'};"></div></div>
+            <div style="font-size:0.75rem; color:var(--text-light); margin-top:4px;">Bina Seviyesi: Sv. ${g.buildingLevel} (Daha büyük binalar daha fazla personel alır)</div>
+        </div>`;
+
+        // SGK Insurance Toggle Card
+        h += `<div class="panel mb-2" style="background:${g.staffInsurance ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.08)'}; border:1px solid ${g.staffInsurance ? 'rgba(46, 204, 113, 0.4)' : 'rgba(231, 76, 60, 0.3)'};">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div>
+                    <div style="font-weight:900; font-size:1.05rem; color:${g.staffInsurance ? 'var(--success)' : 'var(--danger)'};">🛡️ Personel Sigortası (SGK)</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">Maliyet: <b>$15/personel/gün</b> | Durum: <b>${g.staffInsurance ? 'Aktif (Korumalı)' : 'Kapalı (İstifa Riski)'}</b></div>
+                    <div style="font-size:0.75rem; color:var(--text-light); margin-top:2px;">${g.staffInsurance ? '✅ Personeller güvencede, istifalar ve davalar önlenir.' : '⚠️ Sigortasız çalışanlar istifa edebilir ve patron morali düşer!'}</div>
+                </div>
+                <button class="btn ${g.staffInsurance ? 'btn-green' : 'btn-danger'}" onclick="Engine.toggleStaffInsurance()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${g.staffInsurance ? 'Sigortalı ✅' : 'Sigorta Aç'}</button>
+            </div>
+        </div>`;
+
         for (let k in GameData.staffTypes) { 
             let s = GameData.staffTypes[k]; 
-            h += `<div class="item-row"><div class="item-info"><span class="item-title">${s.name} (${g.staff[k]||0})</span>
-            <span class="item-sub" style="color:var(--text-dark);">${s.desc}</span>
-            <span class="item-sub" style="color:var(--danger); font-weight:bold;">Maaş: ${App.formatMoney(s.wage)}/Gün</span>
-            </div><div class="item-action"><button class="btn btn-primary" onclick="Engine.hireStaff('${k}')">İşe Al<br>(${App.formatMoney(s.cost)})</button></div></div>`; 
+            let count = (g.staff && g.staff[k]) ? g.staff[k] : 0;
+            let hireCost = Engine.getStaffHireCost(k);
+            let atLimit = total >= maxLimit;
+
+            h += `<div class="item-row">
+                <div class="item-info">
+                    <span class="item-title">${s.name} (${count})</span>
+                    <span class="item-sub" style="color:var(--text-dark);">${s.desc}</span>
+                    <span class="item-sub" style="color:var(--danger); font-weight:bold;">Maaş: ${App.formatMoney(s.wage)}/Gün</span>
+                    <span class="item-sub" style="color:var(--text-light); font-size:0.75rem;">Sonraki Alım: ${App.formatMoney(hireCost)} (Kademeli Artış)</span>
+                </div>
+                <div class="item-action" style="flex-direction:row; align-items:center; gap:6px;">
+                    ${count > 0 ? `<button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger); padding:6px 10px;" onclick="Engine.fireStaff('${k}')">Çıkar</button>` : ''}
+                    <button class="btn btn-primary" onclick="Engine.hireStaff('${k}')" ${atLimit ? 'disabled' : ''}>İşe Al<br>(${App.formatMoney(hireCost)})</button>
+                </div>
+            </div>`; 
         }
         document.getElementById('staff-view').innerHTML = h;
     },
@@ -571,7 +622,19 @@ const UI = {
 
         h += `<div class="panel text-center mb-2" style="background:var(--primary-dark); color:white;">
             <div style="font-size:1.4rem; font-weight:900;">🧑‍⚖️ Hukuk Departmanı</div>
-            <div style="font-size:0.9rem; opacity:0.9;">Davalarla başa çıkmak için bir avukat kiralayın.</div>
+            <div style="font-size:0.9rem; opacity:0.9;">Davalarla başa çıkmak için avukatınızı güçlendirin veya duruşmada zar atın!</div>
+        </div>`;
+
+        // Lawyer Raise / Bonus Card
+        h += `<div class="panel mb-2" style="background:${g.lawyerRaise ? 'rgba(52, 152, 219, 0.12)' : 'rgba(0,0,0,0.03)'}; border:1px solid ${g.lawyerRaise ? 'rgba(52, 152, 219, 0.4)' : '#ddd'};">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div>
+                    <div style="font-weight:900; font-size:1.05rem; color:var(--primary-dark);">💼 Avukata Prim & Zam</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">Maliyet: <b>+$1,000/gün</b> | Durum: <b>${g.lawyerRaise ? 'Aktif (+%20 Zafer Şansı)' : 'Standart Tarife'}</b></div>
+                    <div style="font-size:0.75rem; color:var(--text-light); margin-top:2px;">Avukata prim verildiğinde duruşma zafer şansı %20 artar ve duruşmada zar atarken +2 bonus verir!</div>
+                </div>
+                <button class="btn ${g.lawyerRaise ? 'btn-primary' : 'btn-outline'}" onclick="Engine.toggleLawyerRaise()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${g.lawyerRaise ? 'Prim Veriliyor ✅' : 'Prim/Zam Ver'}</button>
+            </div>
         </div>`;
         
         h += `<div class="page-header mt-2" style="font-size:1.2rem;">💼 Avukat Kiralama</div><div style="display:flex; flex-direction:column; gap:10px;">`;
@@ -601,7 +664,8 @@ const UI = {
                         <span class="item-sub">Tazminat Talebi: <b>${App.formatMoney(law.cost)}</b></span>
                         <span class="item-sub">Mahkemeye Kalan: <b>${law.daysLeft} Gün</b></span>
                     </div>
-                    <div class="item-action">
+                    <div class="item-action" style="flex-direction:row; align-items:center; gap:6px;">
+                        <button class="btn btn-purple" style="padding:6px 10px; font-weight:bold;" onclick="Engine.rollLawsuitDice(${idx})">🎲 Zar At<br><small>(Duruşma)</small></button>
                         <button class="btn btn-warning" onclick="Engine.settleLawsuit(${idx})">Anlaş<br>(${App.formatMoney(law.cost)})</button>
                     </div>
                 </div>`;
@@ -925,6 +989,67 @@ const UI = {
         if(end < 150) h += `<div class="text-center mt-2" style="font-style:italic; color:#777;">... ve 150. seviyeye kadar daha fazlası!</div>`;
         h += `</div>`;
         document.getElementById('roadmap-view').innerHTML = h;
+    },
+
+    showEndDayModal: () => {
+        let g = App.state.g;
+        if (!g.lastDayReport) return;
+        let rep = g.lastDayReport;
+        let isProfit = rep.netProfit >= 0;
+
+        let content = `
+            <div style="background:var(--bg); border:1px solid var(--border); border-radius:15px; padding:12px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-around; align-items:center; font-weight:900;">
+                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">KAZANÇ</span><span class="green">+${App.formatMoney(rep.revenue)}</span></div>
+                    <div style="font-size:1.2rem; color:var(--text-light);">|</div>
+                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">GİDER</span><span class="red">-${App.formatMoney(rep.expenses)}</span></div>
+                    <div style="font-size:1.2rem; color:var(--text-light);">|</div>
+                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">NET KAR</span><span class="${isProfit ? 'green' : 'red'}">${isProfit ? '+' : ''}${App.formatMoney(rep.netProfit)}</span></div>
+                </div>
+                <div class="mt-2" style="font-style:italic; font-size:0.85rem; color:var(--text-dark); border-top:1px dashed var(--border); padding-top:6px;">
+                    "${rep.randomReview}"
+                </div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="endday-tabs">
+                <button class="endday-tab active" id="tab-btn-kasa" onclick="UI.switchEndDayTab('kasa')">💰 Kasa (${rep.tabKasa ? rep.tabKasa.length : 0})</button>
+                <button class="endday-tab" id="tab-btn-haberler" onclick="UI.switchEndDayTab('haberler')">📰 Pazar (${rep.tabHaberler ? rep.tabHaberler.length : 0})</button>
+                <button class="endday-tab" id="tab-btn-hukuk" onclick="UI.switchEndDayTab('hukuk')">⚖️ Hukuk (${rep.tabHukuk ? rep.tabHukuk.length : 0})</button>
+                <button class="endday-tab" id="tab-btn-duyurular" onclick="UI.switchEndDayTab('duyurular')">📢 Duyurular (${rep.tabDuyurular ? rep.tabDuyurular.length : 0})</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="endday-content active" id="tab-view-kasa">
+                ${rep.tabKasa && rep.tabKasa.length > 0 ? rep.tabKasa.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Bugün kasa hareketi olmadı.</div>'}
+            </div>
+            <div class="endday-content" id="tab-view-haberler">
+                ${rep.tabHaberler && rep.tabHaberler.length > 0 ? rep.tabHaberler.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Bugün önemli bir piyasa veya trend haberi yok.</div>'}
+            </div>
+            <div class="endday-content" id="tab-view-hukuk">
+                ${rep.tabHukuk && rep.tabHukuk.length > 0 ? rep.tabHukuk.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Herhangi bir dava veya duruşma gelişmesi yok.</div>'}
+            </div>
+            <div class="endday-content" id="tab-view-duyurular">
+                ${rep.tabDuyurular && rep.tabDuyurular.length > 0 ? rep.tabDuyurular.join('') : '<div style="color:var(--text-light); font-style:italic; padding:10px;">Özel bir şirket duyurusu bulunmuyor.</div>'}
+            </div>
+
+            <div class="mt-2 text-center" style="color:var(--success); font-weight:900; font-size:0.85rem;">
+                💾 İlerleme Otomatik Olarak Kaydedildi
+            </div>
+        `;
+
+        App.showModal("📅 Gün Sonu Raporu", content, `<button class="btn btn-primary" onclick="App.closeModal()">Tamam / Sonraki Gün</button>`);
+    },
+
+    switchEndDayTab: (tabKey) => {
+        if (typeof AudioSys !== 'undefined') AudioSys.tap();
+        document.querySelectorAll('.endday-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.endday-content').forEach(c => c.classList.remove('active'));
+
+        let btn = document.getElementById('tab-btn-' + tabKey);
+        let view = document.getElementById('tab-view-' + tabKey);
+        if (btn) btn.classList.add('active');
+        if (view) view.classList.add('active');
     }
 };
 

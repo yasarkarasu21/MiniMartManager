@@ -34,20 +34,23 @@ const GameData = {
         l2_q1: { level: 2, title: "İlk Çalışan", desc: "Kasa kuyruğunu önlemek için 1 Kasiyer işe al.", prereqQuests: ["l1_q3"], reqBuild: 1, condition: { type: "staff", param: "cashier", value: 1 }, reward: { money: 800, rp: 15, rep: 2 } },
         l2_q2: { level: 2, title: "Şarküteri Reyonu", desc: "Müşteriler için Süt reyonu aç.", prereqQuests: ["l2_q1"], reqBuild: 1, condition: { type: "unlocked", param: "milk", value: true }, reward: { money: 1200, rp: 20, rep: 3 } },
         l2_q3: { level: 2, title: "Depo Genişletme", desc: "Depo Genişletme I satın alarak kapasiteyi artır.", prereqQuests: ["l2_q2"], reqBuild: 1, condition: { type: "upgrade", param: "storage2", value: true }, reward: { money: 1500, rp: 25, rep: 3 } },
+        l2_q4: { level: 2, title: "Personel Güvencesi", desc: "Personel İstifalarını önlemek için SGK / Personel Sigortasını aç.", prereqQuests: ["l2_q3"], reqBuild: 1, condition: { type: "staffInsurance", value: true }, reward: { money: 1800, rp: 20, rep: 3 } },
 
-        l3_q1: { level: 3, title: "Lojistik Devrimi", desc: "Filoya 1 adet Kamyon satın al.", prereqQuests: ["l2_q3"], reqBuild: 1, condition: { type: "fleet", param: "truck", value: 1 }, reward: { money: 2500, rp: 30, rep: 4 } },
+        l3_q1: { level: 3, title: "Lojistik Devrimi", desc: "Filoya 1 adet Kamyon satın al.", prereqQuests: ["l2_q4"], reqBuild: 1, condition: { type: "fleet", param: "truck", value: 1 }, reward: { money: 2500, rp: 30, rep: 4 } },
         l3_q2: { level: 3, title: "Giyim Reyonu", desc: "T-Shirt reyonu açarak tekstil sektörüne adım at.", prereqQuests: ["l3_q1"], reqBuild: 1, condition: { type: "unlocked", param: "tshirt", value: true }, reward: { money: 2000, rp: 25, rep: 3 } },
         l3_q3: { level: 3, title: "Hayırsever İş İnsanı", desc: "Herhangi bir vakfa ilk bağışını yap.", prereqQuests: ["l3_q2"], reqBuild: 1, condition: { type: "foundation", value: 1 }, reward: { money: 3000, rp: 35, rep: 5 } },
 
         l4_q1: { level: 4, title: "Moda & Ayakkabı", desc: "Ayakkabı reyonunu kur.", prereqQuests: ["l3_q3"], reqBuild: 1, condition: { type: "unlocked", param: "shoes", value: true }, reward: { money: 3500, rp: 30, rep: 4 } },
         l4_q2: { level: 4, title: "Borsa Kurdu", desc: "Borsadan en az 10 Lot Altın satın al.", prereqQuests: ["l4_q1"], reqBuild: 1, condition: { type: "stock", param: "gold", value: 10 }, reward: { money: 5000, rp: 40, rep: 5 } },
         l4_q3: { level: 4, title: "Mağaza Güvenliği", desc: "Hırsızları önlemek için 1 Güvenlik Görevlisi tut.", prereqQuests: ["l4_q2"], reqBuild: 1, condition: { type: "staff", param: "guard", value: 1 }, reward: { money: 4000, rp: 35, rep: 4 } },
+        l4_q4: { level: 4, title: "Güzellik & Bakım", desc: "Kozmetik reyonunu açarak ürün yelpazeni genişlet.", prereqQuests: ["l4_q3"], reqBuild: 1, condition: { type: "unlocked", param: "cosmetics", value: true }, reward: { money: 4500, rp: 35, rep: 4 } },
 
-        l5_q1: { level: 5, title: "Teknoloji Çağı", desc: "Telefon reyonunu açarak elektroniğe geç.", prereqQuests: ["l4_q3"], reqBuild: 1, condition: { type: "unlocked", param: "phone", value: true }, reward: { money: 6000, rp: 45, rep: 6 } },
+        l5_q1: { level: 5, title: "Teknoloji Çağı", desc: "Telefon reyonunu açarak elektroniğe geç.", prereqQuests: ["l4_q4"], reqBuild: 1, condition: { type: "unlocked", param: "phone", value: true }, reward: { money: 6000, rp: 45, rep: 6 } },
         l5_q2: { level: 5, title: "İlk Büyük İhale", desc: "B2B sekmesinden 1 adet sözleşmeyi başarıyla teslim et.", prereqQuests: ["l5_q1"], reqBuild: 1, condition: { type: "b2b", value: 1 }, reward: { money: 8000, rp: 50, rep: 8 } },
         l5_q3: { level: 5, title: "Büyük Sermaye", desc: "Kasada $50,000 nakit biriktir.", prereqQuests: ["l5_q2"], reqBuild: 1, condition: { type: "money", value: 50000 }, reward: { money: 10000, rp: 60, rep: 10 } },
+        l5_q4: { level: 5, title: "Oyuncak Dünyası", desc: "Çocuklar için Oyuncak reyonunun kilidini aç.", prereqQuests: ["l5_q3"], reqBuild: 1, condition: { type: "unlocked", param: "toys", value: true }, reward: { money: 12000, rp: 65, rep: 10 } },
 
-        l6_q1: { level: 6, title: "Süpermarket Açılışı", desc: "Bina seviyeni Süpermarket'e (Seviye 2) yükselt.", prereqQuests: ["l5_q3"], reqBuild: 2, condition: { type: "buildingLevel", value: 2 }, reward: { money: 15000, rp: 80, rep: 12 } },
+        l6_q1: { level: 6, title: "Süpermarket Açılışı", desc: "Bina seviyeni Süpermarket'e (Seviye 2) yükselt.", prereqQuests: ["l5_q4"], reqBuild: 2, condition: { type: "buildingLevel", value: 2 }, reward: { money: 15000, rp: 80, rep: 12 } },
         l6_q2: { level: 6, title: "Sağlık & Eczane", desc: "Vitamin & İlaç reyonunu aç.", prereqQuests: ["l6_q1"], reqBuild: 2, condition: { type: "unlocked", param: "pharmacy", value: true }, reward: { money: 12000, rp: 70, rep: 10 } },
         l6_q3: { level: 6, title: "Toplumsal Destek", desc: "Bir vakfı Seviye 3'e kadar geliştir.", prereqQuests: ["l6_q2"], reqBuild: 2, condition: { type: "foundationLevel", value: 3 }, reward: { money: 20000, rp: 90, rep: 15 } },
 
@@ -57,11 +60,18 @@ const GameData = {
 
         l8_q1: { level: 8, title: "Mega AVM Projesi", desc: "Bina seviyeni Mega AVM'ye (Seviye 3) yükselt.", prereqQuests: ["l7_q3"], reqBuild: 3, condition: { type: "buildingLevel", value: 3 }, reward: { money: 50000, rp: 150, rep: 25 } },
         l8_q2: { level: 8, title: "Lüks Otomobil Galerisi", desc: "Spor Araba reyonunun kilidini aç.", prereqQuests: ["l8_q1"], reqBuild: 3, condition: { type: "unlocked", param: "car", value: true }, reward: { money: 75000, rp: 200, rep: 30 } },
+        l8_q3: { level: 8, title: "Lüks Ev & Mobilya", desc: "Mobilya reyonunu açarak AVM'yi donat.", prereqQuests: ["l8_q2"], reqBuild: 3, condition: { type: "unlocked", param: "furniture", value: true }, reward: { money: 60000, rp: 180, rep: 25 } },
+        l8_q4: { level: 8, title: "Büyük Çevre Hamisi", desc: "Yeşil Doğa Vakfını en az Seviye 5 yap.", prereqQuests: ["l8_q3"], reqBuild: 3, condition: { type: "foundationLevel", value: 5 }, reward: { money: 80000, rp: 220, rep: 35 } },
 
-        l9_q1: { level: 9, title: "Gökyüzü Filosu", desc: "Filoya 1 adet Kargo Uçağı satın al.", prereqQuests: ["l8_q2"], reqBuild: 3, condition: { type: "fleet", param: "plane", value: 1 }, reward: { money: 100000, rp: 300, rep: 40 } },
+        l9_q1: { level: 9, title: "Gökyüzü Filosu", desc: "Filoya 1 adet Kargo Uçağı satın al.", prereqQuests: ["l8_q4"], reqBuild: 3, condition: { type: "fleet", param: "plane", value: 1 }, reward: { money: 100000, rp: 300, rep: 40 } },
         l9_q2: { level: 9, title: "Piyasa Hakimiyeti", desc: "Pazar payını %80'e çıkar.", prereqQuests: ["l9_q1"], reqBuild: 3, condition: { type: "marketShare", value: 80 }, reward: { money: 150000, rp: 350, rep: 50 } },
+        l9_q3: { level: 9, title: "Dev Kasa Birikimi", desc: "Kasada $300,000 nakit rezervi tut.", prereqQuests: ["l9_q2"], reqBuild: 3, condition: { type: "money", value: 300000 }, reward: { money: 120000, rp: 250, rep: 35 } },
+        l9_q4: { level: 9, title: "Holding Gökdeleni", desc: "Bina seviyeni Plaza Seviye 4 veya üzerine yükselt.", prereqQuests: ["l9_q3"], reqBuild: 4, condition: { type: "buildingLevel", value: 4 }, reward: { money: 180000, rp: 400, rep: 50 } },
 
-        l10_q1: { level: 10, title: "Mutlak Tekel", desc: "HyperMart'ı satın alarak rakibini tamamen yok et!", prereqQuests: ["l9_q2"], reqBuild: 3, condition: { type: "rivalDefeated", value: true }, reward: { money: 500000, rp: 1000, rep: 100 } }
+        l10_q1: { level: 10, title: "Mutlak Tekel", desc: "HyperMart'ı satın alarak rakibini tamamen yok et!", prereqQuests: ["l9_q4"], reqBuild: 3, condition: { type: "rivalDefeated", value: true }, reward: { money: 500000, rp: 1000, rep: 100 } },
+        l10_q2: { level: 10, title: "Dünya Hayırseveri", desc: "Tüm vakıfların toplam seviyesini en az 20 yap.", prereqQuests: ["l10_q1"], reqBuild: 3, condition: { type: "foundation", value: 20 }, reward: { money: 300000, rp: 600, rep: 60 } },
+        l10_q3: { level: 10, title: "Finans Lordu", desc: "Borsada 50 Lot Altın rezervi bulundur.", prereqQuests: ["l10_q2"], reqBuild: 3, condition: { type: "stock", param: "gold", value: 50 }, reward: { money: 400000, rp: 700, rep: 70 } },
+        l10_q4: { level: 10, title: "Küresel İmparatorluk", desc: "$2,000,000 toplam nakde ulaşarak tarihe geç!", prereqQuests: ["l10_q3"], reqBuild: 4, condition: { type: "money", value: 2000000 }, reward: { money: 1000000, rp: 2000, rep: 200 } }
     },
     foundations: {
         children: { id: "children", name: "Geleceğe Umut Çocuk Vakfı", icon: "🧒", desc: "Öğrencilere burs ve ihtiyaç sahibi çocuklara gıda desteği sağlar.", baseCost: 5000, maxLevel: 10, effectPerLevel: { pop: 5, demandPercent: 3 }, effectDesc: "Seviye başına +5 Kalıcı Popülarite ve +%3 Müşteri Talebi." },

@@ -102,11 +102,88 @@ const Engine = {
     },
     
     unlockDept: (id) => { let g = App.state.g; if (g.money >= GameData.products[id].unlock) { Engine.spendMoney(GameData.products[id].unlock); g.unlocked[id] = true; AudioSys.success(); App.showNotify("Reyon açıldı!"); Engine.checkQuests(); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
+    getMaxStaffLimit: () => {
+        let g = App.state.g;
+        let bLvl = (g && g.buildingLevel) ? g.buildingLevel : 1;
+        if (bLvl === 1) return 10;
+        if (bLvl === 2) return 50;
+        if (bLvl === 3) return 200;
+        return 200 + (bLvl - 3) * 100;
+    },
+    getTotalStaffCount: () => {
+        let g = App.state.g;
+        if (!g || !g.staff) return 0;
+        return Object.values(g.staff).reduce((a, b) => a + (Number(b) || 0), 0);
+    },
+    getStaffHireCost: (id) => {
+        let g = App.state.g;
+        if (!GameData || !GameData.staffTypes || !GameData.staffTypes[id]) return 25;
+        let base = GameData.staffTypes[id].cost;
+        let count = (g && g.staff && g.staff[id]) ? g.staff[id] : 0;
+        return Math.floor(base * Math.pow(1.08, count));
+    },
     hireStaff: (id) => { 
         let g = App.state.g; 
         if(!g.staff) g.staff = { cashier: 0, guard: 0, janitor: 0, warehouse: 0, manager: 0 };
         if(g.staff[id] === undefined || isNaN(g.staff[id])) g.staff[id] = 0;
-        if (g.money >= GameData.staffTypes[id].cost) { Engine.spendMoney(GameData.staffTypes[id].cost); g.staff[id]++; AudioSys.buy(); App.showNotify("İşe alındı!"); Engine.checkQuests(); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } 
+        
+        let total = Engine.getTotalStaffCount();
+        let maxLimit = Engine.getMaxStaffLimit();
+        if (total >= maxLimit) {
+            AudioSys.error();
+            App.showNotify(`Personel kapasitesi dolu (${total}/${maxLimit})! Dükkanı büyüt.`, 'error');
+            return;
+        }
+
+        let cost = Engine.getStaffHireCost(id);
+        if (g.money >= cost) { 
+            Engine.spendMoney(cost); 
+            g.staff[id]++; 
+            AudioSys.buy(); 
+            App.showNotify(`${GameData.staffTypes[id].name} işe alındı! (${App.formatMoney(cost)})`, 'success'); 
+            Engine.checkQuests(); 
+            UI.update(); 
+        } else { 
+            AudioSys.error(); 
+            App.showNotify(`Yetersiz bakiye! Gerekli: ${App.formatMoney(cost)}`); 
+        } 
+    },
+    fireStaff: (id) => {
+        let g = App.state.g;
+        if (!g.staff || !g.staff[id] || g.staff[id] <= 0) {
+            AudioSys.error();
+            App.showNotify("İşten çıkarılacak personel yok!");
+            return;
+        }
+        g.staff[id]--;
+        AudioSys.tap();
+        App.showNotify(`${GameData.staffTypes[id].name} işten çıkarıldı.`);
+        UI.update();
+    },
+    toggleStaffInsurance: () => {
+        let g = App.state.g;
+        g.staffInsurance = !g.staffInsurance;
+        AudioSys.click();
+        App.showNotify(g.staffInsurance ? "🛡️ SGK Personel Sigortası Aktif Edildi!" : "SGK Personel Sigortası Kapatıldı.");
+        Engine.checkQuests();
+        UI.update();
+    },
+    toggleLawyerRaise: () => {
+        let g = App.state.g;
+        g.lawyerRaise = !g.lawyerRaise;
+        AudioSys.click();
+        App.showNotify(g.lawyerRaise ? "⚖️ Avukata Prim/Zam Verildi! (+%20 Zafer Şansı)" : "Avukat Primi Kapatıldı.");
+        UI.update();
+    },
+    adjustMorale: (delta, reason) => {
+        let g = App.state.g;
+        if (!g) return;
+        if (g.bossMorale === undefined) g.bossMorale = 80;
+        g.bossMorale = Math.max(0, Math.min(100, g.bossMorale + delta));
+        if (delta !== 0 && reason) {
+            let sign = delta > 0 ? '+' : '';
+            Engine.addLog(`😎 Patron Morali: ${sign}${delta} (${reason}) -> %${g.bossMorale}`);
+        }
     },
     startCampaign: (id) => { let g = App.state.g; if (g.money >= GameData.marketing[id].cost) { Engine.spendMoney(GameData.marketing[id].cost); g.marketingBoost = GameData.marketing[id].pop; g.marketingDaysLeft = GameData.marketing[id].days; AudioSys.success(); App.showNotify("Kampanya Başladı!"); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
     buyStorage: (id) => { 
@@ -184,6 +261,128 @@ const Engine = {
         } else {
             AudioSys.error(); App.showNotify("Anlaşmak için yeterli paran yok!");
         }
+    },
+    startDiceDuel: (params, onFinish) => {
+        let diceIcons = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        let pName = params.playerName || 'Sen';
+        let oppName = params.opponentName || 'Rakip';
+        let pBonus = params.playerBonus || 0;
+        let oppBonus = params.oppBonus || 0;
+        
+        let initialHtml = `
+            <div style="font-size:0.95rem; color:var(--text-light); margin-bottom:12px;">Zarlar atılıyor, masada gerilim yüksek...</div>
+            <div class="dice-container">
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div style="font-size:0.85rem; font-weight:800; color:var(--primary); margin-bottom:5px;">${pName}</div>
+                    <div class="dice-box rolling" id="dice-player">🎲</div>
+                    <div id="dice-p-score" style="font-size:0.85rem; font-weight:bold; margin-top:5px; height:18px;"></div>
+                </div>
+                <div style="font-size:1.6rem; font-weight:900; color:var(--text-light);">VS</div>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div style="font-size:0.85rem; font-weight:800; color:var(--danger); margin-bottom:5px;">${oppName}</div>
+                    <div class="dice-box rolling" id="dice-opp">🎲</div>
+                    <div id="dice-opp-score" style="font-size:0.85rem; font-weight:bold; margin-top:5px; height:18px;"></div>
+                </div>
+            </div>
+            <div id="dice-result-msg" style="margin-top:15px; font-weight:bold; font-size:1.05rem; min-height:40px;">Zarlar dönüyor...</div>
+        `;
+
+        App.showModal(params.title || "🎲 Zar Düellosu", initialHtml, `<button class="btn btn-outline" disabled>Zarlar Dönüyor...</button>`);
+
+        let rollInterval = setInterval(() => {
+            let r1 = Math.floor(Math.random() * 6) + 1;
+            let r2 = Math.floor(Math.random() * 6) + 1;
+            let pBox = document.getElementById('dice-player');
+            let oBox = document.getElementById('dice-opp');
+            if (pBox) pBox.innerText = diceIcons[r1];
+            if (oBox) oBox.innerText = diceIcons[r2];
+        }, 80);
+
+        setTimeout(() => {
+            clearInterval(rollInterval);
+            let finalP = Math.floor(Math.random() * 6) + 1;
+            let finalOpp = Math.floor(Math.random() * 6) + 1;
+            let totalP = finalP + pBonus;
+            let totalOpp = finalOpp + oppBonus;
+
+            let pBox = document.getElementById('dice-player');
+            let oBox = document.getElementById('dice-opp');
+            if (pBox) {
+                pBox.classList.remove('rolling');
+                pBox.innerText = diceIcons[finalP];
+            }
+            if (oBox) {
+                oBox.classList.remove('rolling');
+                oBox.innerText = diceIcons[finalOpp];
+            }
+
+            let pScoreEl = document.getElementById('dice-p-score');
+            let oppScoreEl = document.getElementById('dice-opp-score');
+            if (pScoreEl) pScoreEl.innerText = `${finalP} ${pBonus ? `(+${pBonus})` : ''} = ${totalP}`;
+            if (oppScoreEl) oppScoreEl.innerText = `${finalOpp} ${oppBonus ? `(+${oppBonus})` : ''} = ${totalOpp}`;
+
+            let resMsg = document.getElementById('dice-result-msg');
+            let won = totalP > totalOpp;
+            let tie = totalP === totalOpp;
+
+            let actionsEl = document.getElementById('modal-actions');
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button class="btn btn-primary" onclick="App.closeModal()">Tamam</button>`;
+            }
+
+            if (won) {
+                if (typeof AudioSys !== 'undefined') AudioSys.success();
+                if (resMsg) resMsg.innerHTML = `<span class="green" style="font-size:1.2rem;">🏆 KAZANDIN! (${totalP} vs ${totalOpp})</span>`;
+            } else if (tie) {
+                if (typeof AudioSys !== 'undefined') AudioSys.click();
+                if (resMsg) resMsg.innerHTML = `<span class="yellow" style="font-size:1.2rem;">🤝 BERABERE! (${totalP} vs ${totalOpp})</span>`;
+            } else {
+                if (typeof AudioSys !== 'undefined') AudioSys.error();
+                if (resMsg) resMsg.innerHTML = `<span class="red" style="font-size:1.2rem;">💥 KAYBETTİN! (${totalP} vs ${totalOpp})</span>`;
+            }
+
+            if (onFinish) {
+                onFinish({
+                    playerRoll: finalP,
+                    opponentRoll: finalOpp,
+                    playerTotal: totalP,
+                    opponentTotal: totalOpp,
+                    won: won,
+                    tie: tie,
+                    resMsgEl: resMsg
+                });
+            }
+        }, 1200);
+    },
+    rollLawsuitDice: (idx) => {
+        let g = App.state.g;
+        if (!g.lawsuits || !g.lawsuits[idx]) return;
+        let law = g.lawsuits[idx];
+        let lawyerBonus = (g.lawyerLevel || 0) + (g.lawyerRaise ? 2 : 0);
+
+        Engine.startDiceDuel({
+            title: `⚖️ ${law.type} Duruşması`,
+            playerName: "Avukatın",
+            opponentName: "Hakim & Davacı",
+            playerBonus: lawyerBonus
+        }, (res) => {
+            if (res.won) {
+                g.lawsuits.splice(idx, 1);
+                Engine.adjustMorale(6, "Mahkeme Zaferi");
+                Engine.addLog(`🧑‍⚖️ <b>DAVA DÜŞTÜ!</b> Mahkemede zarları kazandın, "${law.type}" davası düştü!`);
+                if (res.resMsgEl) res.resMsgEl.innerHTML += `<div style="font-size:0.9rem; margin-top:8px;" class="green">Dava Masrafsız Düştü! (+6 Patron Morali)</div>`;
+            } else if (res.tie) {
+                law.daysLeft = Math.max(1, law.daysLeft - 1);
+                if (res.resMsgEl) res.resMsgEl.innerHTML += `<div style="font-size:0.9rem; margin-top:8px;">Duruşma ertelendi. Masraf değişmedi.</div>`;
+            } else {
+                let costIncrease = Math.floor(law.cost * 0.4);
+                law.cost += costIncrease;
+                Engine.adjustMorale(-4, "Mahkeme Kaybı");
+                Engine.addLog(`👨‍⚖️ <b>DOSYA MASRAFI BİNDİ!</b> Mahkemede zarları kaybettin. "${law.type}" dava maliyeti +${App.formatMoney(costIncrease)} arttı!`);
+                if (res.resMsgEl) res.resMsgEl.innerHTML += `<div style="font-size:0.9rem; margin-top:8px;" class="red">Mahkeme Masrafı Eklendi: +${App.formatMoney(costIncrease)} (-4 Moral)</div>`;
+            }
+            UI.update();
+        });
     },
     depositMoney: (amt) => { let g = App.state.g; if(g.money >= amt) { Engine.spendMoney(amt); g.deposits += amt; AudioSys.cash(); App.showNotify("Mevduata eklendi."); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
     withdrawMoney: (amt) => { let g = App.state.g; if(g.deposits > 0) { let w = Math.min(amt, g.deposits); g.deposits -= w; Engine.earnMoney(w); AudioSys.cash(); App.showNotify("Para çekildi."); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
@@ -411,37 +610,32 @@ const Engine = {
         if (!g.relations) g.relations = { wholesaler: 50, minister: 50, mafia: 10 };
 
         if (inst.minigame.isDice) {
-            let playerRoll = Math.floor(Math.random() * 6) + 1;
-            let mafiaRoll = Math.floor(Math.random() * 6) + 1;
-            let diceIcons = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-            let diceAnim = `
-                <div style="display:flex; justify-content:center; align-items:center; gap:25px; font-size:3.5rem; margin:15px 0;">
-                    <div style="text-align:center;"><div style="font-size:0.9rem; font-weight:bold; color:var(--primary);">Sen</div>${diceIcons[playerRoll]} (${playerRoll})</div>
-                    <div style="font-size:1.5rem; font-weight:900;">VS</div>
-                    <div style="text-align:center;"><div style="font-size:0.9rem; font-weight:bold; color:var(--danger);">Mafya</div>${diceIcons[mafiaRoll]} (${mafiaRoll})</div>
-                </div>
-            `;
-
-            if (playerRoll > mafiaRoll) {
+            Engine.startDiceDuel({
+                title: "🎲 Mafya Zar Masası",
+                playerName: "Sen",
+                opponentName: "Mafya Babası"
+            }, (res) => {
                 let winBonus = inst.minigame.winBonus || 25;
                 let winMoney = inst.minigame.winMoney || 10000;
-                g.relations[instId] = Math.min(100, (g.relations[instId] || 10) + winBonus);
-                Engine.earnMoney(winMoney);
-                AudioSys.cash();
-                App.showModal("🎲 ZAR DÜELLOSU KAZANILDI!", `${diceAnim}Zarları sen kazandın! Mafya lideri sana saygı duydu.<br><span class="green">+${winBonus} Mafya İlişkisi</span><br><span class="green">+${App.formatMoney(winMoney)} Kazanç</span>`);
-            } else if (playerRoll < mafiaRoll) {
                 let losePenalty = inst.minigame.losePenalty || -15;
                 let loseMoney = inst.minigame.loseMoney || 5000;
-                g.relations[instId] = Math.max(0, (g.relations[instId] || 10) + losePenalty);
-                let actualLoss = Math.min(g.money, loseMoney);
-                Engine.spendMoney(actualLoss);
-                AudioSys.error();
-                App.showModal("🎲 ZAR DÜELLOSU KAYBEDİLDİ!", `${diceAnim}Mafya babası daha yüksek attı! Kumar masasında kaybettin.<br><span class="red">${losePenalty} Mafya İlişkisi</span><br><span class="red">-${App.formatMoney(actualLoss)} Kayıp</span>`);
-            } else {
-                AudioSys.click();
-                App.showModal("🎲 BERABERE!", `${diceAnim}İki taraf da ${playerRoll} attı! Masada para veya ilişki değişmedi.`);
-            }
-            UI.update();
+
+                if (res.won) {
+                    g.relations[instId] = Math.min(100, (g.relations[instId] || 10) + winBonus);
+                    Engine.earnMoney(winMoney);
+                    Engine.adjustMorale(5, "Mafya Masasında Galibiyet");
+                    if (res.resMsgEl) res.resMsgEl.innerHTML += `<div style="font-size:0.9rem; margin-top:8px;" class="green">+${winBonus} Mafya İlişkisi | +${App.formatMoney(winMoney)} Kazanç (+5 Moral)</div>`;
+                } else if (res.tie) {
+                    if (res.resMsgEl) res.resMsgEl.innerHTML += `<div style="font-size:0.9rem; margin-top:8px;">İki taraf da aynı attı! Para ve ilişki değişmedi.</div>`;
+                } else {
+                    g.relations[instId] = Math.max(0, (g.relations[instId] || 10) + losePenalty);
+                    let actualLoss = Math.min(g.money, loseMoney);
+                    Engine.spendMoney(actualLoss);
+                    Engine.adjustMorale(-4, "Mafya Masasında Kayıp");
+                    if (res.resMsgEl) res.resMsgEl.innerHTML += `<div style="font-size:0.9rem; margin-top:8px;" class="red">${losePenalty} Mafya İlişkisi | -${App.formatMoney(actualLoss)} Kayıp (-4 Moral)</div>`;
+                }
+                UI.update();
+            });
             return;
         }
 
@@ -464,13 +658,15 @@ const Engine = {
         if (success) {
             let delta = opt.successBonus || 10;
             g.relations[instId] = Math.min(100, (g.relations[instId] || 50) + delta);
+            Engine.adjustMorale(3, "Başarılı İlişki Etkileşimi");
             AudioSys.success();
-            App.showModal("🎉 BAŞARILI ETKİLEŞİM!", `<b>${opt.name}</b><br><br>${opt.successMsg || 'İlişki güçlendi!'}<br><span class="green">+${delta} İlişki</span>`);
+            App.showModal("🎉 BAŞARILI ETKİLEŞİM!", `<b>${opt.name}</b><br><br>${opt.successMsg || 'İlişki güçlendi!'}<br><span class="green">+${delta} İlişki</span><br><span class="green">+3 Patron Morali</span>`);
         } else {
             let delta = opt.failPenalty || 0;
             g.relations[instId] = Math.max(0, (g.relations[instId] || 50) + delta);
+            Engine.adjustMorale(-3, "Başarısız Görüşme");
             AudioSys.error();
-            App.showModal("⚠️ ANLAŞMAZLIK!", `<b>${opt.name}</b><br><br>${opt.failMsg || 'Görüşme beklediğin gibi gitmedi.'}<br>${delta < 0 ? `<span class="red">${delta} İlişki</span>` : ''}`);
+            App.showModal("⚠️ ANLAŞMAZLIK!", `<b>${opt.name}</b><br><br>${opt.failMsg || 'Görüşme beklediğin gibi gitmedi.'}<br>${delta < 0 ? `<span class="red">${delta} İlişki</span>` : ''}<br><span class="red">-3 Patron Morali</span>`);
         }
         UI.update();
     },
@@ -552,17 +748,111 @@ const Engine = {
         } else { AudioSys.error(); App.showNotify("Depoda yeterli mal yok!"); }
     },
 
+    checkDailyLoginBonus: () => {
+        let g = App.state.g;
+        if (!g) return;
+        let today = new Date().toISOString().slice(0, 10);
+        if (g.lastLoginDate === today) return; // Already claimed today
+
+        let isConsecutive = false;
+        if (g.lastLoginDate) {
+            let prevDate = new Date(g.lastLoginDate);
+            let currDate = new Date(today);
+            let diffDays = Math.round((currDate - prevDate) / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) isConsecutive = true;
+        }
+
+        if (isConsecutive) {
+            g.loginStreak = ((g.loginStreak || 1) % 7) + 1;
+        } else {
+            g.loginStreak = 1;
+        }
+        g.lastLoginDate = today;
+
+        let rewards = [
+            { day: 1, money: 1000, rp: 5, morale: 2 },
+            { day: 2, money: 2500, rp: 10, morale: 4 },
+            { day: 3, money: 5000, rp: 15, morale: 5 },
+            { day: 4, money: 10000, rp: 25, morale: 8 },
+            { day: 5, money: 20000, rp: 35, morale: 10 },
+            { day: 6, money: 35000, rp: 50, morale: 15 },
+            { day: 7, money: 75000, rp: 100, morale: 25, jackpot: true }
+        ];
+
+        let r = rewards[g.loginStreak - 1] || rewards[0];
+        Engine.earnMoney(r.money);
+        g.researchPoints = (g.researchPoints || 0) + r.rp;
+        Engine.adjustMorale(r.morale, "Günlük Giriş Bonusu");
+
+        let streakHtml = `<div style="display:flex; justify-content:center; gap:6px; margin:15px 0;">`;
+        for (let i = 1; i <= 7; i++) {
+            let active = i === g.loginStreak;
+            let passed = i < g.loginStreak;
+            streakHtml += `
+                <div style="flex:1; padding:6px 2px; border-radius:10px; background:${active ? 'var(--primary)' : (passed ? 'rgba(46,204,113,0.2)' : 'rgba(0,0,0,0.05)')}; color:${active ? 'white' : 'var(--text)'}; border:${active ? '2px solid var(--primary-dark)' : '1px solid var(--border)'}; font-size:0.75rem; text-align:center;">
+                    <div style="font-weight:900;">${i}.G</div>
+                    <div style="font-size:1.1rem; margin:2px 0;">${i === 7 ? '🎁' : (passed ? '✅' : '⭐')}</div>
+                    <div style="font-weight:bold;">${i === 7 ? '$75K' : '$' + (rewards[i-1].money / 1000) + 'K'}</div>
+                </div>
+            `;
+        }
+        streakHtml += `</div>`;
+
+        let modalContent = `
+            <div style="font-size:1.05rem; line-height:1.6;">
+                Hoş geldin Patron! Giriş serisi: <b>${g.loginStreak}. Gün</b> 🔥<br>
+                ${streakHtml}
+                <div style="background:rgba(46, 204, 113, 0.1); border:1px solid rgba(46, 204, 113, 0.3); border-radius:12px; padding:12px; margin-top:10px;">
+                    <div style="font-weight:900; color:var(--success); font-size:1.1rem;">Bugünün Ödülleri:</div>
+                    <div style="font-weight:bold; margin-top:5px;">💵 +${App.formatMoney(r.money)} Nakit</div>
+                    <div style="font-weight:bold; color:var(--purple);">🧪 +${r.rp} Ar-Ge Puanı (RP)</div>
+                    <div style="font-weight:bold; color:var(--primary);">😎 +%${r.morale} Patron Morali</div>
+                    ${r.jackpot ? '<div style="font-weight:900; color:var(--danger); margin-top:5px;">🎉 7. GÜN BÜYÜK İKRAMİYESİ ALINDI!</div>' : ''}
+                </div>
+            </div>
+        `;
+
+        setTimeout(() => {
+            if (typeof AudioSys !== 'undefined') AudioSys.success();
+            App.showModal("📅 GÜNLÜK GİRİŞ SERİSİ", modalContent);
+        }, 600);
+    },
+
     endDay: () => {
         AudioSys.endDay();
         let g = App.state.g;
         let dayPassedDateStr = `Ay ${g.month} / Hft ${g.week} / Gn ${g.day}`;
         g.logs = []; let revenue = 0, soldTotal = 0; g.currentTransportUsed = 0;
         
-        if(g.trendDaysLeft > 0) { g.trendDaysLeft--; if(g.trendDaysLeft === 0) g.trendActive = null; } 
-        else { if(Math.random() < 0.15) { g.trendActive = GameData.marketTrends[Math.floor(Math.random() * GameData.marketTrends.length)]; g.trendDaysLeft = 3 + Math.floor(Math.random() * 3); Engine.addLog(`🌍 YENİ TREND: ${g.trendActive.name}!`); } }
+        let tabKasaLogs = [];
+        let tabHaberlerLogs = [];
+        let tabHukukLogs = [];
+        let tabDuyurularLogs = [];
+
+        const logKasa = (msg) => { Engine.addLog(msg); tabKasaLogs.push(`<div class="log-entry">${msg}</div>`); };
+        const logHaber = (msg) => { Engine.addLog(msg); tabHaberlerLogs.push(`<div class="log-entry">${msg}</div>`); };
+        const logHukuk = (msg) => { Engine.addLog(msg); tabHukukLogs.push(`<div class="log-entry">${msg}</div>`); };
+        const logDuyuru = (msg) => { Engine.addLog(msg); tabDuyurularLogs.push(`<div class="log-entry">${msg}</div>`); };
+
+        if(g.trendDaysLeft > 0) { 
+            g.trendDaysLeft--; 
+            if(g.trendDaysLeft === 0) g.trendActive = null; 
+        } else { 
+            if(Math.random() < 0.15) { 
+                g.trendActive = GameData.marketTrends[Math.floor(Math.random() * GameData.marketTrends.length)]; 
+                g.trendDaysLeft = 3 + Math.floor(Math.random() * 3); 
+                logHaber(`🌍 YENİ TREND: ${g.trendActive.name}!`); 
+            } 
+        }
         
-        if(Math.random() < 0.2) { g.blackMarketActive = true; let keys = Object.keys(GameData.products); g.blackMarketItem = keys[Math.floor(Math.random() * keys.length)]; } 
-        else { g.blackMarketActive = false; }
+        if(Math.random() < 0.2) { 
+            g.blackMarketActive = true; 
+            let keys = Object.keys(GameData.products); 
+            g.blackMarketItem = keys[Math.floor(Math.random() * keys.length)]; 
+            logHaber(`🕵️ Karaborsa tüccarı şehre geldi! Alışveriş sekmesinden kaçak mal alabilirsin.`);
+        } else { 
+            g.blackMarketActive = false; 
+        }
         
         // Incoming Cargo Processing
         if(g.incomingCargo) {
@@ -572,7 +862,7 @@ const Engine = {
                 c.daysLeft--;
                 if(c.daysLeft <= 0) {
                     g.inventory[c.id] += c.qty;
-                    Engine.addLog(`📦 Kargo Teslim Edildi: ${c.qty}x ${GameData.products[c.id].name}`);
+                    logKasa(`📦 Kargo Teslim Edildi: ${c.qty}x ${GameData.products[c.id].name}`);
                 } else {
                     stillIncoming.push(c);
                 }
@@ -587,16 +877,16 @@ const Engine = {
                 let spaceLimit = g.factory.level * 100;
                 let produceQty = Math.max(1, Math.floor(spaceLimit / p.space));
                 let cost = Math.floor(p.buy * 0.3) * produceQty;
-                
-                let actStore = g.storageCapacity; if(g.skills && g.skills.storageOpt && g.skills.storageOpt.unlocked) actStore = Math.floor(actStore * 1.2);
+                let actStore = g.storageCapacity; 
+                if(g.skills && g.skills.storageOpt && g.skills.storageOpt.unlocked) actStore = Math.floor(actStore * 1.2);
                 
                 if(g.money >= cost && g.currentStorage + (produceQty * p.space) <= actStore) {
                     Engine.spendMoney(cost);
                     g.inventory[g.factory.activeItem] += produceQty;
                     g.currentStorage += (produceQty * p.space);
-                    Engine.addLog(`🏭 Fabrika: ${produceQty}x ${p.name} üretildi (Maliyet: ${App.formatMoney(cost)})`);
+                    logKasa(`🏭 Fabrika: ${produceQty}x ${p.name} üretildi (Maliyet: ${App.formatMoney(cost)})`);
                 } else {
-                    Engine.addLog(`⚠️ Fabrika durdu! (Yetersiz bakiye veya depo alanı)`);
+                    logDuyuru(`⚠️ Fabrika durdu! (Yetersiz bakiye veya depo alanı)`);
                 }
             }
         }
@@ -611,7 +901,7 @@ const Engine = {
                 g.availableContracts.push({
                     client: "🕶️ Mafya Bağlantısı", item: "apple", qty: 0, reward: bribeAmt, penalty: 0, days: 2, isBribe: true
                 });
-                Engine.addLog(`🕶️ Mafyadan reddedemeyeceğin bir 'teklif' geldi! (B2B sekmesine bak)`);
+                logDuyuru(`🕶️ Mafyadan gizli bir 'teklif' geldi! (B2B sekmesine bak)`);
             } else {
                 let clients = ["Belediye", "Lüks Otel", "Okul Kantini", "Hastane", "Plaza", "Askeriye", "Festival Organizatörü"];
                 let keys = Object.keys(GameData.products).filter(k => g.unlocked[k]);
@@ -626,7 +916,7 @@ const Engine = {
                         client: clients[Math.floor(Math.random() * clients.length)],
                         item: item, qty: qty, reward: reward, penalty: penalty, days: 3 + Math.floor(Math.random()*4)
                     });
-                    Engine.addLog(`🤝 Yeni B2B İhalesi teklifi geldi!`);
+                    logDuyuru(`🤝 Yeni B2B İhalesi teklifi geldi!`);
                 }
             }
         }
@@ -638,7 +928,7 @@ const Engine = {
             if(c.days <= 0) {
                 Engine.spendMoney(c.penalty);
                 g.corporateRep = Math.max(0, (g.corporateRep||0) - 10);
-                Engine.addLog(`❌ İhale BAŞARISIZ! ${c.client} firmasına söz verilen mallar gitmedi. <span class="red">-${App.formatMoney(c.penalty)} ceza yedin.</span>`);
+                logDuyuru(`❌ İhale BAŞARISIZ! ${c.client} firmasına teslimat yetişmedi. <span class="red">-${App.formatMoney(c.penalty)} ceza</span>`);
             } else {
                 newContracts.push(c);
             }
@@ -663,16 +953,21 @@ const Engine = {
             if(g.marketShare > 99.0) g.marketShare = 99.0;
         }
 
-        let mBoost = g.marketingBoost; if(g.skills && g.skills.marketingPro && g.skills.marketingPro.unlocked) mBoost *= 1.5;
+        let mBoost = g.marketingBoost; 
+        if(g.skills && g.skills.marketingPro && g.skills.marketingPro.unlocked) mBoost *= 1.5;
         let currentPop = Math.min(200, Math.max(1, Engine.getBasePop() + (g.marketingDaysLeft > 0 ? mBoost : 0)));
         if (g.marketingDaysLeft > 0) g.marketingDaysLeft--;
         
-        let fpDemandBonus = 1 + (g.franchisePoints * 0.10); let fpProfitBonus = 1 + (g.franchisePoints * 0.10);
+        let fpDemandBonus = 1 + (g.franchisePoints * 0.10); 
+        let fpProfitBonus = 1 + (g.franchisePoints * 0.10);
         let repBonus = 1 + ((g.corporateRep || 0) * 0.01); 
         let marketShareMod = g.rivalDefeated ? 2.5 : (0.5 + ((g.marketShare||5) / 100)); 
         let childDemandBonus = (g.foundations && g.foundations.children) ? (1 + (g.foundations.children * 0.03)) : 1.0;
-        let demandMult = (currentPop / 50) * fpDemandBonus * marketShareMod * repBonus * childDemandBonus; 
-        let cashierBonus = g.staff.cashier * 5;
+        
+        // Boss morale modifies daily customer demand
+        let bossMoraleMod = 0.7 + (((g.bossMorale !== undefined) ? g.bossMorale : 80) / 100) * 0.5;
+        let demandMult = (currentPop / 50) * fpDemandBonus * marketShareMod * repBonus * childDemandBonus * bossMoraleMod; 
+        let cashierBonus = (g.staff && g.staff.cashier ? g.staff.cashier : 0) * 5;
 
         for (let k in GameData.products) {
             if (g.inventory[k] > 0) {
@@ -680,8 +975,7 @@ const Engine = {
                 let sellPrice = p.sell;
                 if(g.customPrice && g.customPrice[k] !== undefined) sellPrice = g.customPrice[k];
                 else {
-                    // Legacy migration
-                    let priceMode = g.pricing[k];
+                    let priceMode = g.pricing ? g.pricing[k] : null;
                     if(priceMode === 'cheap') sellPrice = Math.floor(p.sell * 0.7);
                     else if(priceMode === 'expensive') sellPrice = Math.floor(p.sell * 1.5);
                     if(!g.customPrice) g.customPrice = {};
@@ -704,13 +998,41 @@ const Engine = {
                     let rev = sold * actualSellPrice;
                     Engine.earnMoney(rev); revenue += rev; soldTotal += sold;
                     g.inventory[k] -= sold; g.currentStorage -= (sold * p.space);
-                    Engine.addLog(`🛒 ${p.name}: ${sold} satıldı (+${App.formatMoney(rev)})`);
+                    logKasa(`🛒 ${p.name}: ${sold} satıldı (+${App.formatMoney(rev)})`);
                 }
             }
         }
 
-        let expenses = 0; let managerDiscount = g.staff.manager > 0 ? 0.8 : 1.0; let hrWageMod = (g.skills && g.skills.hrExpert && g.skills.hrExpert.unlocked) ? 0.9 : 1.0;
-        for (let k in GameData.staffTypes) expenses += (g.staff[k]||0) * (GameData.staffTypes[k].wage * managerDiscount * hrWageMod);
+        let expenses = 0; 
+        let managerDiscount = (g.staff && g.staff.manager > 0) ? 0.8 : 1.0; 
+        let hrWageMod = (g.skills && g.skills.hrExpert && g.skills.hrExpert.unlocked) ? 0.9 : 1.0;
+        
+        let totalWages = 0;
+        for (let k in GameData.staffTypes) {
+            let count = (g.staff && g.staff[k]) ? g.staff[k] : 0;
+            totalWages += count * (GameData.staffTypes[k].wage * managerDiscount * hrWageMod);
+        }
+        expenses += totalWages;
+        if (totalWages > 0) logKasa(`👥 Personel Maaşları: -${App.formatMoney(totalWages)}`);
+
+        // Staff Insurance (SGK) vs Resignation
+        let totalStaff = Engine.getTotalStaffCount();
+        if (g.staffInsurance) {
+            let insCost = totalStaff * 15;
+            expenses += insCost;
+            if (insCost > 0) logKasa(`🛡️ SGK Personel Sigortası: -${App.formatMoney(insCost)} (${totalStaff} personel korundu)`);
+        } else if (totalStaff > 5) {
+            let resignChance = 0.12 + ((g.bossMorale || 80) < 50 ? 0.15 : 0);
+            if (Math.random() < resignChance) {
+                let hiredKeys = Object.keys(GameData.staffTypes).filter(k => (g.staff && g.staff[k] > 0));
+                if (hiredKeys.length > 0) {
+                    let rKey = hiredKeys[Math.floor(Math.random() * hiredKeys.length)];
+                    g.staff[rKey]--;
+                    Engine.adjustMorale(-4, "Personel İstifası");
+                    logDuyuru(`🚪 <b>PERSONEL İSTİFASI!</b> Sigortasız koşullar nedeniyle 1x ${GameData.staffTypes[rKey].name} istifa etti! (-4 Moral)`);
+                }
+            }
+        }
         
         // Active Loans Processing
         if (!g.activeLoans) g.activeLoans = [];
@@ -724,9 +1046,9 @@ const Engine = {
             expenses += payAmt;
             l.total -= payAmt;
             l.daysLeft--;
-            Engine.addLog(`💳 ${l.type} Taksiti: -${App.formatMoney(payAmt)} (${Math.max(0, l.daysLeft)} gün kaldı)`);
+            logKasa(`💳 ${l.type} Taksiti: -${App.formatMoney(payAmt)} (${Math.max(0, l.daysLeft)} gün kaldı)`);
             if (l.daysLeft <= 0 || l.total <= 0) {
-                Engine.addLog(`🎉 ${l.type} başarıyla kapatıldı!`);
+                logDuyuru(`🎉 ${l.type} tamamen kapandı!`);
                 g.activeLoans.splice(i, 1);
             }
         }
@@ -737,69 +1059,108 @@ const Engine = {
         
         let lawyerFees = [0, 200, 1000, 4000];
         let lawyerWinRates = [10, 40, 70, 95];
+        
+        if (g.lawyerRaise) {
+            expenses += 1000;
+            logHukuk(`⚖️ Avukat Primi & Zammı: -$1,000 (+%20 Ekstra Zafer Şansı)`);
+        }
         if (g.lawyerLevel > 0) {
             let fee = lawyerFees[g.lawyerLevel];
             expenses += fee;
-            Engine.addLog(`⚖️ Avukatlık Ücreti: -${App.formatMoney(fee)}`);
+            logHukuk(`⚖️ Avukatlık Ücreti: -${App.formatMoney(fee)}`);
         }
         
         for (let i = g.lawsuits.length - 1; i >= 0; i--) {
             let law = g.lawsuits[i];
             law.daysLeft--;
             if (law.daysLeft <= 0) {
-                // Court Day!
-                let winChance = lawyerWinRates[g.lawyerLevel];
+                let winChance = lawyerWinRates[g.lawyerLevel] + (g.lawyerRaise ? 20 : 0);
                 if (Math.random() * 100 <= winChance) {
-                    Engine.addLog(`🧑‍⚖️ <b>MAHKEME KAZANILDI!</b> Avukatın sayesinde "${law.type}" davası düştü!`);
+                    Engine.adjustMorale(5, "Mahkeme Zaferi");
+                    logHukuk(`🧑‍⚖️ <b>MAHKEME KAZANILDI!</b> Avukatın sayesinde "${law.type}" davası düştü! (+5 Moral)`);
                 } else {
-                    let penalty = Math.floor(law.cost * 1.5); // 50% extra for court fees
+                    let penalty = Math.floor(law.cost * 1.5);
                     expenses += penalty;
                     g.popularity = Math.max(0, g.popularity - 10);
-                    Engine.addLog(`👨‍⚖️ <b>MAHKEME KAYBEDİLDİ!</b> "${law.type}" davası sonuçlandı. Masraflarla: <span class="red">-${App.formatMoney(penalty)}</span> (Popülarite Düştü)`);
+                    Engine.adjustMorale(-8, "Mahkeme Kaybı");
+                    logHukuk(`👨‍⚖️ <b>MAHKEME KAYBEDİLDİ!</b> "${law.type}" davası sonuçlandı: <span class="red">-${App.formatMoney(penalty)}</span> (-8 Moral)`);
                 }
                 g.lawsuits.splice(i, 1);
             } else {
-                Engine.addLog(`⚖️ "${law.type}" davası için duruşmaya ${law.daysLeft} gün kaldı.`);
+                logHukuk(`⚖️ "${law.type}" duruşmasına ${law.daysLeft} gün kaldı. (Duruşmada Zar Atabilirsin)`);
             }
         }
 
-        if (g.deposits > 0) { let earned = Math.floor(g.deposits * 0.02); g.deposits += earned; }
-        if (g.insurance) expenses += 50;
+        if (g.deposits > 0) { 
+            let earned = Math.floor(g.deposits * 0.02); 
+            g.deposits += earned; 
+            logKasa(`🏦 Mevduat Faizi Getirisi: <span class="green">+${App.formatMoney(earned)}</span>`);
+        }
+        if (g.insurance) {
+            expenses += 50;
+            logKasa(`🛡️ Dükkan Yangın Sigortası: -$50`);
+        }
 
-        // Tüketici / RP kazanımı
+        // RP kazanımı
         let rpGain = Math.floor(revenue / 20000) + Math.floor(soldTotal / 50) + 1;
         if (g.foundations && g.foundations.tech_edu > 0) {
             let fRp = g.foundations.tech_edu * 2;
             rpGain += fRp;
-            Engine.addLog(`💡 Teknoloji Vakfı Katkısı: +${fRp} RP üretildi.`);
+            logDuyuru(`💡 Teknoloji Vakfı Katkısı: +${fRp} RP üretildi.`);
         }
         g.researchPoints = (g.researchPoints || 0) + rpGain;
-        if(rpGain > 0) Engine.addLog(`🧪 +${rpGain} RP Kazanıldı`);
+        if(rpGain > 0) logDuyuru(`🧪 +${rpGain} RP Kazanıldı`);
 
         g.day++; 
         if (g.day > 7) { 
             g.day = 1; g.week++; 
             // HAFTALIK VERGİ (TAX)
             let taxRate = 0.10;
-            if(g.relations && g.relations.minister >= 80) taxRate = 0; // Tax free
-            else if(g.relations && g.relations.minister < 30) taxRate = 0.20; // Double tax
+            if(g.relations && g.relations.minister >= 80) taxRate = 0;
+            else if(g.relations && g.relations.minister < 30) taxRate = 0.20;
             
-            // Green foundation tax discount
             if (g.foundations && g.foundations.green > 0) {
                 taxRate = Math.max(0, taxRate - (g.foundations.green * 0.02));
             }
             
             let tax = Math.floor(g.money * taxRate);
-            if(tax > 0) { expenses += tax; Engine.addLog(`🏛️ Haftalık Kurumlar Vergisi: -${App.formatMoney(tax)}`); }
-            else if (taxRate <= 0) { Engine.addLog(`🏛️ Bakanlık & Çevre Vakfı vergi muafiyeti sayesinde bu hafta VERGİ ÖDEMEDİNİZ!`); }
+            if(tax > 0) { 
+                expenses += tax; 
+                logKasa(`🏛️ Haftalık Kurumlar Vergisi: -${App.formatMoney(tax)}`); 
+            } else if (taxRate <= 0) { 
+                logKasa(`🏛️ Bakanlık & Çevre Vakfı muafiyeti sayesinde bu hafta VERGİ ÖDEMEDİNİZ!`); 
+            }
 
-            // Haftalık ilişki doğal yıpranması
+            // Haftalık kurum ilişkileri yıpranması
             if (g.relations && typeof GameData !== 'undefined' && GameData.institutions) {
                 for (let instKey in GameData.institutions) {
                     let dec = GameData.institutions[instKey].weeklyDecay || 2;
                     g.relations[instKey] = Math.max(0, (g.relations[instKey] || 50) - dec);
                 }
-                Engine.addLog(`📉 Haftalık kurum ilişkileri doğal olarak yıprandı.`);
+                logDuyuru(`📉 Haftalık kurum ilişkileri doğal olarak yıprandı.`);
+            }
+
+            // Haftalık Şehir Piyangosu (Re-engagement / Retention)
+            if (Math.random() < 0.35) {
+                let lotteryPrize = (Math.random() < 0.1) ? 50000 : (5000 + Math.floor(Math.random() * 15000));
+                Engine.earnMoney(lotteryPrize); 
+                revenue += lotteryPrize;
+                Engine.adjustMorale(8, "Şehir Piyangosu");
+                logDuyuru(`🎰 <b>ŞEHİR PİYANGOSU TALİHLİSİ!</b> Piyango biletine <span class="green">+${App.formatMoney(lotteryPrize)}</span> ikramiye çıktı! (+8 Moral)`);
+            }
+
+            // Haftalık Borsa Temettü Geliri (Hisse senedi sahiplerine)
+            let portVal = 0;
+            for (let s in g.stocks) {
+                if (g.stocks[s]) portVal += (g.stocks[s].shares || 0) * (g.stocks[s].price || 0);
+            }
+            if (portVal > 0) {
+                let dividend = Math.floor(portVal * 0.04);
+                if (dividend > 0) {
+                    Engine.earnMoney(dividend);
+                    revenue += dividend;
+                    logKasa(`📈 Haftalık Borsa Temettü Geliri: <span class="green">+${App.formatMoney(dividend)}</span> (%4 Temettü)`);
+                }
             }
         } 
         if (g.week > 4) { g.week = 1; g.month++; }
@@ -808,46 +1169,55 @@ const Engine = {
 
         for(let s in g.stocks) {
             if(!g.stocks[s]) continue;
-            g.stocks[s].oldPrice = g.stocks[s].price; let volatility = s === 'megatech' ? 0.25 : (s === 'foodco' ? 0.10 : (s === 'doge' ? 0.50 : 0.03)); 
+            g.stocks[s].oldPrice = g.stocks[s].price; 
+            let volatility = s === 'megatech' ? 0.25 : (s === 'foodco' ? 0.10 : (s === 'doge' ? 0.50 : 0.03)); 
             let change = 1 + (Math.random() * volatility * 2 - volatility);
             if(g.trendActive && g.trendActive.id === 'crypto' && s === 'doge') change *= 1.5;
             g.stocks[s].price = Math.max(1, Math.floor(g.stocks[s].price * change));
         }
-        if ((g.staff.janitor||0) === 0 && soldTotal > 50 && Math.random() > 0.5) g.popularity -= 2;
-        else if ((g.staff.janitor||0) > 0 && g.popularity < Engine.getBasePop()+50) g.popularity += 1;
+
+        if ((g.staff && g.staff.janitor||0) === 0 && soldTotal > 50 && Math.random() > 0.5) g.popularity -= 2;
+        else if ((g.staff && g.staff.janitor||0) > 0 && g.popularity < Engine.getBasePop()+50) g.popularity += 1;
 
         if(!g.modifiers) g.modifiers = {buyMod:1};
         let bMod = 1.0;
         if(g.relations && g.relations.wholesaler >= 80) bMod = 0.8;
         else if(g.relations && g.relations.wholesaler < 30) bMod = 1.3;
         g.modifiers.buyMod = bMod;
+
         if (Math.random() < 0.45) {
             let r = Math.random();
             if (r < 0.15 && !g.rivalDefeated && (g.marketShare||0) > 20) { 
-                g.popularity -= 5; g.marketShare -= 2.0; Engine.addLog(`📉 Rakip agresif kampanya yaptı! Popülarite düştü.`); 
+                g.popularity -= 5; g.marketShare -= 2.0; 
+                logHaber(`📉 Rakip agresif kampanya yaptı! Popülarite ve Pazar Payı düştü.`); 
             }
             else if (r < 0.3) { 
                 if (g.relations && g.relations.mafia >= 80 && !g.rivalDefeated) {
                     g.marketShare += 2.0;
-                    Engine.addLog(`🕶️ Mafya rakibin nakliye aracını 'ikna etti'. Pazar payın arttı!`);
+                    logHaber(`🕶️ Mafya rakibin nakliye aracını durdurdu. Pazar payın arttı!`);
                 } else if (g.relations && g.relations.mafia < 30) {
-                    let loss = Math.floor(g.money * 0.15) + 500; if(g.money<loss)loss=g.money; 
-                    Engine.spendMoney(loss); expenses += loss; Engine.addLog(`🕶️ Mafya haraç kesti! Zarar: -${App.formatMoney(loss)}`); 
+                    let loss = Math.floor(g.money * 0.15) + 500; 
+                    if(g.money < loss) loss = g.money; 
+                    Engine.spendMoney(loss); expenses += loss; 
+                    logDuyuru(`🕶️ Mafya dükkana haraç kesti! Zarar: -${App.formatMoney(loss)}`); 
                 } else {
-                    if((g.staff.guard||0) === 0) { 
-                        let loss = Math.floor(g.money * 0.1) + 100; if(g.money<loss)loss=g.money; 
-                        Engine.spendMoney(loss); expenses += loss; Engine.addLog(`🦹 Marketten Hırsızlık Yapıldı! Zarar: -${App.formatMoney(loss)}`); 
+                    if((g.staff && g.staff.guard||0) === 0) { 
+                        let loss = Math.floor(g.money * 0.1) + 100; 
+                        if(g.money < loss) loss = g.money; 
+                        Engine.spendMoney(loss); expenses += loss; 
+                        logDuyuru(`🦹 Marketten Hırsızlık Yapıldı! Zarar: -${App.formatMoney(loss)}`); 
                     } else {
                         let fine = 500 * g.staff.guard;
                         Engine.earnMoney(fine); revenue += fine;
-                        Engine.addLog(`👮 Güvenlik Görevlisi hırsızı suçüstü yakaladı! Tazminat: <span class="green">+${App.formatMoney(fine)}</span>`);
+                        logKasa(`👮 Güvenlik Görevlisi hırsızı suçüstü yakaladı! Tazminat: <span class="green">+${App.formatMoney(fine)}</span>`);
                     }
                 }
             }
             else if (r < 0.45) { 
                 if(!g.insurance) { 
-                    let lost = Math.floor((g.inventory.apple||0)/2); g.inventory.apple -= lost; g.currentStorage -= lost; 
-                    Engine.addLog(`🔥 Depoda Küçük Çaplı Yangın! Elmaların bir kısmı ziyan oldu.`); 
+                    let lost = Math.floor((g.inventory.apple||0)/2); 
+                    g.inventory.apple -= lost; g.currentStorage -= lost; 
+                    logDuyuru(`🔥 Depoda Küçük Yangın Çıktı! Malların bir kısmı ziyan oldu.`); 
                 } 
             }
             else if (r < 0.7) {
@@ -859,19 +1229,19 @@ const Engine = {
                     { type: "Hatalı Ürün Patlaması", baseCost: 25000, preventable: false }
                 ];
                 let acc = accidents[Math.floor(Math.random() * accidents.length)];
-                if (acc.preventable && (g.staff.janitor||0) > 0) {
-                    Engine.addLog(`🧹 Temizlikçi yerdeki sıvı döküntüsünü hemen temizleyerek olası bir düşme davasını önledi!`);
+                if (acc.preventable && (g.staff && g.staff.janitor||0) > 0) {
+                    logDuyuru(`🧹 Temizlikçi ıslak zemini anında silerek olası düşme davasını engelledi!`);
                 } else {
-                    let courtDays = Math.floor(Math.random() * 3) + 3; // 3 to 5 days
+                    let courtDays = Math.floor(Math.random() * 3) + 3;
                     g.lawsuits.push({ type: acc.type, cost: acc.baseCost, daysLeft: courtDays });
-                    Engine.addLog(`🚨 <b>DAVA AÇILDI!</b> Sebep: "${acc.type}". Talep: ${App.formatMoney(acc.baseCost)}. Duruşmaya: ${courtDays} gün.`);
+                    logHukuk(`🚨 <b>DAVA AÇILDI!</b> "${acc.type}" davası açıldı. Talep: ${App.formatMoney(acc.baseCost)}. Duruşmaya: ${courtDays} gün.`);
                     setTimeout(() => App.showNotify("ŞİRKETE DAVA AÇILDI!", 'error'), 1000);
                 }
             }
         }
         
         // Manager Ability: Free Stock Negotiation
-        if ((g.staff.manager||0) > 0 && Math.random() < 0.15) {
+        if ((g.staff && g.staff.manager||0) > 0 && Math.random() < 0.15) {
             let pkeys = Object.keys(GameData.products).filter(k => g.unlocked[k]);
             if (pkeys.length > 0) {
                 let rItem = pkeys[Math.floor(Math.random() * pkeys.length)];
@@ -880,13 +1250,12 @@ const Engine = {
                 if (g.currentStorage + reqSpace <= g.storageCapacity) {
                     g.inventory[rItem] += qty;
                     g.currentStorage += reqSpace;
-                    Engine.addLog(`👔 Müdür tedarikçilerle pazarlık yaparak ${qty}x ${GameData.products[rItem].name} BEDAVA kopardı!`);
+                    logKasa(`👔 Müdür tedarikçiyle pazarlık yaparak ${qty}x ${GameData.products[rItem].name} BEDAVA aldı!`);
                 }
             }
         }
 
         // DÜNYADAN HABERLER SİSTEMİ
-        if(!g.modifiers) g.modifiers = {buyMod: 1};
         if(Math.random() < 0.20 && typeof GameData !== 'undefined' && GameData.news && GameData.news.length > 0) {
             let ev = GameData.news[Math.floor(Math.random() * GameData.news.length)];
             if(ev.effects) {
@@ -905,14 +1274,26 @@ const Engine = {
                     revenue += ref;
                 }
             }
-            Engine.addLog(`📰 <b>${ev.title}:</b> ${ev.desc}`);
+            logHaber(`📰 <b>${ev.title}:</b> ${ev.desc}`);
+        }
+
+        // Morale impact from daily net profit / loss
+        let netProfit = revenue - expenses;
+        if (netProfit > 0) {
+            let mBoost = Math.min(5, Math.max(1, Math.floor(netProfit / 5000)));
+            Engine.adjustMorale(mBoost, "Günlük Kar");
+            logKasa(`📈 Günlük Net Kar: <span class="green">+${App.formatMoney(netProfit)}</span> (+${mBoost} Moral)`);
+        } else {
+            let mLoss = Math.min(8, Math.max(2, Math.floor(Math.abs(netProfit) / 3000)));
+            Engine.adjustMorale(-mLoss, "Günlük Zarar");
+            logKasa(`📉 Günlük Net Zarar: <span class="red">-${App.formatMoney(Math.abs(netProfit))}</span> (-${mLoss} Moral)`);
         }
 
         let reviews = [];
         if(cheapCount > 2) reviews.push("Fiyatlar o kadar ucuz ki toptancı sandım! ⭐⭐⭐⭐⭐");
         if(expCount > 2) reviews.push("Fiyatlar ateş pahası. Burası saray mı market mi? ⭐");
-        if((g.staff.janitor||0) === 0 && Math.random()>0.5) reviews.push("İçerisi çok pisti, her yerde toz var. ⭐⭐");
-        if((g.staff.cashier||0) > 2 && Math.random()>0.5) reviews.push("Kasa sırası hiç beklemedim, kasiyerler jet gibi. ⭐⭐⭐⭐");
+        if((g.staff && g.staff.janitor||0) === 0 && Math.random()>0.5) reviews.push("İçerisi çok pisti, her yerde toz var. ⭐⭐");
+        if((g.staff && g.staff.cashier||0) > 2 && Math.random()>0.5) reviews.push("Kasa sırası hiç beklemedim, kasiyerler jet gibi. ⭐⭐⭐⭐");
         if(g.foundations && g.foundations.animal > 0 && Math.random() > 0.4) reviews.push("Hayvan barınaklarına bağış yapan duyarlı bir market, bayılıyorum! ⭐⭐⭐⭐⭐");
         if(reviews.length === 0) reviews.push("Normal bir alışveriş deneyimiydi. Fena değil. ⭐⭐⭐");
         let randomReview = reviews[Math.floor(Math.random()*reviews.length)];
@@ -929,11 +1310,22 @@ const Engine = {
         });
         if (g.history.length > 30) g.history.pop();
 
+        g.lastDayReport = {
+            revenue: revenue,
+            expenses: expenses,
+            netProfit: netProfit,
+            randomReview: randomReview,
+            tabKasa: tabKasaLogs,
+            tabHaberler: tabHaberlerLogs,
+            tabHukuk: tabHukukLogs,
+            tabDuyurular: tabDuyurularLogs
+        };
+
         Engine.checkQuests();
         App.saveGame(false);
         
-        setTimeout(() => AudioSys.cash(), 500); // Play cash sound when modal appears
-        App.showModal("Gün Sonu Raporu", `<div>KAZANÇ: <span class="green">+${App.formatMoney(revenue)}</span></div><div>GİDER: <span class="red">-${App.formatMoney(expenses)}</span></div><div class="mt-2" style="font-style:italic;">"${randomReview}"</div><hr><div style="font-size:0.8rem; text-align:left;">${g.logs.join('')}</div><div class="mt-2 text-center" style="color:var(--success); font-weight:900; font-size:1.1rem;">💾 Oyun Başarıyla Kaydedildi</div>`);
+        setTimeout(() => AudioSys.cash(), 400);
+        UI.showEndDayModal();
         UI.update();
     }
 };
