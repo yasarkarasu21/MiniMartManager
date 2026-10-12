@@ -8,16 +8,16 @@ const UI = {
                 <div class="header-stat money"><span class="stat-icon">💵</span><span class="stat-text" id="s-money"></span></div>
             </div>
             <div class="top-row mt-2">
-                <div class="header-stat" style="cursor:pointer;" onclick="UI.openPanel('reviews')"><span class="stat-icon">⭐</span><span class="stat-text">%<span id="s-pop"></span> Pop.</span></div>
-                <div class="header-stat" style="background:rgba(231,76,60,0.3); cursor:pointer;" onclick="UI.openPanel('cargo')"><span class="stat-icon">🚚</span><span class="stat-text">Kargo: <span id="s-truck"></span></span></div>
-                <div class="header-stat" style="background:rgba(52,152,219,0.3); cursor:pointer;" onclick="UI.openPanel('market')"><span class="stat-icon">📊</span><span class="stat-text">Pazar: %<span id="s-market-share"></span></span></div>
-                <div class="header-stat" id="s-morale-box" style="background:rgba(155,89,182,0.2); cursor:pointer;" onclick="App.showNotify('Patron Morali: %' + (App.state.g.bossMorale || 80) + ' - Satışları ve personel verimini etkiler.')"><span class="stat-icon" id="s-morale-icon">😎</span><span class="stat-text">%<span id="s-morale">80</span></span></div>
+                <div class="header-stat" style="cursor:pointer;" onclick="UI.openPanel('reviews')"><span class="stat-icon">⭐</span><span class="stat-text">%<span id="s-pop"></span> ${t('headerPop')}</span></div>
+                <div class="header-stat" style="background:rgba(231,76,60,0.3); cursor:pointer;" onclick="UI.openPanel('cargo')"><span class="stat-icon">🚚</span><span class="stat-text">${t('headerCargo')}: <span id="s-truck"></span></span></div>
+                <div class="header-stat" style="background:rgba(52,152,219,0.3); cursor:pointer;" onclick="UI.openPanel('market')"><span class="stat-icon">📊</span><span class="stat-text">${t('headerMarket')}: %<span id="s-market-share"></span></span></div>
+                <div class="header-stat" id="s-morale-box" style="background:rgba(155,89,182,0.2); cursor:pointer;" onclick="App.showNotify(t('headerMorale') + ': %' + (App.state.g.bossMorale || 80))"><span class="stat-icon" id="s-morale-icon">😎</span><span class="stat-text">%<span id="s-morale">80</span></span></div>
             </div>
             <div class="storage-container mt-2">
-                <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:800; margin-bottom:5px;"><span>📦 Depo Doluluğu</span><span id="s-storage"></span></div>
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:800; margin-bottom:5px;"><span>📦 ${t('headerStorage')}</span><span id="s-storage"></span></div>
                 <div class="progress-bar"><div class="progress-fill" id="storage-fill" style="width: 0%;"></div></div>
             </div>
-            <div class="top-row mt-2" id="trend-bar" style="display:none; width:100%;"><div class="trend-badge" style="width:100%; text-align:center;">🌍 Trend: <span id="s-trend"></span> (<span id="s-trend-days"></span> Gün) - <small style="opacity:0.8">Fiyatları Etkiler</small></div></div>
+            <div class="top-row mt-2" id="trend-bar" style="display:none; width:100%;"><div class="trend-badge" style="width:100%; text-align:center;">🌍 ${t('headerTrend')}: <span id="s-trend"></span> (<span id="s-trend-days"></span> ${t('day')})</div></div>
         </header>
 
         <div class="game-scroll-area">
@@ -28,58 +28,70 @@ const UI = {
                 <section id="tab-b2b" class="tab-content hidden"><div id="b2b-view"></div></section>
                 <section id="tab-manage" class="tab-content hidden">
                     <div class="page-header">👔 ${t('manage')}</div>
+
+                    <div class="manage-card" onclick="UI.openPanel('penthouse')">
+                        <div class="mc-icon" style="background:linear-gradient(135deg, #f1c40f, #d4ac0d);">👑</div>
+                        <div class="mc-content"><div class="mc-title">${t('penthouseTitle')}</div><div class="mc-desc">${t('penthouseSub')}</div></div>
+                        <div class="mc-arrow">▶</div>
+                    </div>
+
+                    <div class="manage-card" onclick="UI.openPanel('espionage')">
+                        <div class="mc-icon" style="background:linear-gradient(135deg, #2c3e50, #1a252f);">🕵️‍♂️</div>
+                        <div class="mc-content"><div class="mc-title">${t('espionageTitle')}</div><div class="mc-desc">${t('espionageSub')}</div></div>
+                        <div class="mc-arrow">▶</div>
+                    </div>
                     
                     <div class="manage-card" onclick="UI.openPanel('finance')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #27ae60, #2ecc71);">🏦</div>
-                        <div class="mc-content"><div class="mc-title">${t('finance')}</div><div class="mc-desc">Krediler, Borsa ve Nakit Yönetimi</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('finance')}</div><div class="mc-desc">${t('financeTitle')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
                     
                     <div class="manage-card" onclick="UI.openPanel('rd')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #2980b9, #3498db);">🧪</div>
-                        <div class="mc-content"><div class="mc-title">${t('rd')}</div><div class="mc-desc">Yeni Yetenekler ve Özel Görevler</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('rd')}</div><div class="mc-desc">${t('rdTitle')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
                     
                     <div class="manage-card" onclick="UI.openPanel('upgrades')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #d35400, #e67e22);">🏢</div>
-                        <div class="mc-content"><div class="mc-title">${t('upgrades')}</div><div class="mc-desc">Bina Seviyeleri, Araç Filosu, Prestij</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('upgrades')}</div><div class="mc-desc">${t('upgradesTitle')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
                     
                     <div class="manage-card" onclick="UI.openPanel('factory')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #8e44ad, #9b59b6);">🏭</div>
-                        <div class="mc-content"><div class="mc-title">${t('factory')}</div><div class="mc-desc">Kendi Markanı Üret, Toptancıyı Es Geç</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('factory')}</div><div class="mc-desc">${t('factorySub')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
 
                     <div class="manage-card" onclick="UI.openPanel('calendar')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #16a085, #1abc9c);">📅</div>
-                        <div class="mc-content"><div class="mc-title">Şirket Günlüğü</div><div class="mc-desc">Geçmiş satışlar, kredi taksitleri ve günlük olaylar</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('calendarTitle')}</div><div class="mc-desc">${t('noHistory')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
 
                     <div class="manage-card" onclick="UI.openPanel('law')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #c0392b, #e74c3c);">🧑‍⚖️</div>
-                        <div class="mc-content"><div class="mc-title">Hukuk Departmanı</div><div class="mc-desc">Davalar, tazminatlar ve avukat yönetimi</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('lawTitle')}</div><div class="mc-desc">${t('lawSub')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
 
                     <div class="manage-card" onclick="UI.openPanel('relations')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #8e44ad, #2c3e50);">🤝</div>
-                        <div class="mc-content"><div class="mc-title">İlişki Yönetimi</div><div class="mc-desc">Toptancı, Bakanlık ve Mafya İlişkileri</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('relationsTitle')}</div><div class="mc-desc">${t('relationsSub')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
 
-                    <div class="page-header mt-2">Sistem Seçenekleri</div>
+                    <div class="page-header mt-2">${t('settings')}</div>
                     <div class="manage-card" onclick="UI.openPanel('roadmap')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #f39c12, #e67e22);">🗺️</div>
-                        <div class="mc-content"><div class="mc-title">Yol Haritası</div><div class="mc-desc">Oyunun ilerleyen 150 seviyesinde seni neler bekliyor?</div></div>
+                        <div class="mc-content"><div class="mc-title">Yol Haritası (Roadmap)</div><div class="mc-desc">150 Seviye bina yolculuğu</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
                     <div class="manage-card" onclick="UI.openPanel('settings')">
                         <div class="mc-icon" style="background:linear-gradient(135deg, #34495e, #7f8c8d);">⚙️</div>
-                        <div class="mc-content"><div class="mc-title">${t('settings')}</div><div class="mc-desc">Ses, Tema ve Dil Ayarları</div></div>
+                        <div class="mc-content"><div class="mc-title">${t('settings')}</div><div class="mc-desc">${t('theme')}, ${t('lang')}, ${t('vol')}</div></div>
                         <div class="mc-arrow">▶</div>
                     </div>
                     
@@ -100,18 +112,20 @@ const UI = {
         </nav>
 
         <!-- Draggable Floating Panels Container -->
+        <div class="floating-panel" id="panel-penthouse"><div class="panel-header"><span class="panel-title">👑 ${t('penthouseTitle')}</span><button class="btn-close" onclick="UI.closePanel('penthouse')">X</button></div><div class="panel-body" id="penthouse-view"></div></div>
+        <div class="floating-panel" id="panel-espionage"><div class="panel-header"><span class="panel-title">🕵️ ${t('espionageTitle')}</span><button class="btn-close" onclick="UI.closePanel('espionage')">X</button></div><div class="panel-body" id="espionage-view"></div></div>
         <div class="floating-panel" id="panel-finance"><div class="panel-header"><span class="panel-title">🏦 ${t('finance')}</span><button class="btn-close" onclick="UI.closePanel('finance')">X</button></div><div class="panel-body" id="finance-view"></div></div>
         <div class="floating-panel" id="panel-rd"><div class="panel-header"><span class="panel-title">🧪 ${t('rd')}</span><button class="btn-close" onclick="UI.closePanel('rd')">X</button></div><div class="panel-body" id="rd-view"></div></div>
         <div class="floating-panel" id="panel-upgrades"><div class="panel-header"><span class="panel-title">🏢 ${t('upgrades')}</span><button class="btn-close" onclick="UI.closePanel('upgrades')">X</button></div><div class="panel-body" id="upgrades-view"></div></div>
         <div class="floating-panel" id="panel-factory"><div class="panel-header"><span class="panel-title">🏭 ${t('factory')}</span><button class="btn-close" onclick="UI.closePanel('factory')">X</button></div><div class="panel-body" id="factory-view"></div></div>
         <div class="floating-panel" id="panel-settings"><div class="panel-header"><span class="panel-title">⚙️ ${t('settings')}</span><button class="btn-close" onclick="UI.closePanel('settings')">X</button></div><div class="panel-body" id="settings-view"></div></div>
         <div class="floating-panel" id="panel-roadmap"><div class="panel-header"><span class="panel-title">🗺️ Yol Haritası</span><button class="btn-close" onclick="UI.closePanel('roadmap')">X</button></div><div class="panel-body" id="roadmap-view"></div></div>
-        <div class="floating-panel" id="panel-calendar"><div class="panel-header"><span class="panel-title">📅 Şirket Günlüğü</span><button class="btn-close" onclick="UI.closePanel('calendar')">X</button></div><div class="panel-body" id="calendar-view"></div></div>
-        <div class="floating-panel" id="panel-law"><div class="panel-header"><span class="panel-title">🧑‍⚖️ Hukuk Departmanı</span><button class="btn-close" onclick="UI.closePanel('law')">X</button></div><div class="panel-body" id="law-view"></div></div>
-        <div class="floating-panel" id="panel-relations"><div class="panel-header"><span class="panel-title">🤝 İlişki Yönetimi</span><button class="btn-close" onclick="UI.closePanel('relations')">X</button></div><div class="panel-body" id="relations-view"></div></div>
-        <div class="floating-panel" id="panel-reviews"><div class="panel-header"><span class="panel-title">⭐ Müşteri Yorumları</span><button class="btn-close" onclick="UI.closePanel('reviews')">X</button></div><div class="panel-body" id="reviews-view"></div></div>
-        <div class="floating-panel" id="panel-cargo"><div class="panel-header"><span class="panel-title">🚚 Gelen Kargolar</span><button class="btn-close" onclick="UI.closePanel('cargo')">X</button></div><div class="panel-body" id="cargo-view"></div></div>
-        <div class="floating-panel" id="panel-market"><div class="panel-header"><span class="panel-title">📊 Pazar Payı & Rakipler</span><button class="btn-close" onclick="UI.closePanel('market')">X</button></div><div class="panel-body" id="market-view"></div></div>
+        <div class="floating-panel" id="panel-calendar"><div class="panel-header"><span class="panel-title">📅 ${t('calendarTitle')}</span><button class="btn-close" onclick="UI.closePanel('calendar')">X</button></div><div class="panel-body" id="calendar-view"></div></div>
+        <div class="floating-panel" id="panel-law"><div class="panel-header"><span class="panel-title">🧑‍⚖️ ${t('lawTitle')}</span><button class="btn-close" onclick="UI.closePanel('law')">X</button></div><div class="panel-body" id="law-view"></div></div>
+        <div class="floating-panel" id="panel-relations"><div class="panel-header"><span class="panel-title">🤝 ${t('relationsTitle')}</span><button class="btn-close" onclick="UI.closePanel('relations')">X</button></div><div class="panel-body" id="relations-view"></div></div>
+        <div class="floating-panel" id="panel-reviews"><div class="panel-header"><span class="panel-title">⭐ ${t('reviewsTitle')}</span><button class="btn-close" onclick="UI.closePanel('reviews')">X</button></div><div class="panel-body" id="reviews-view"></div></div>
+        <div class="floating-panel" id="panel-cargo"><div class="panel-header"><span class="panel-title">🚚 ${t('cargoTitle')}</span><button class="btn-close" onclick="UI.closePanel('cargo')">X</button></div><div class="panel-body" id="cargo-view"></div></div>
+        <div class="floating-panel" id="panel-market"><div class="panel-header"><span class="panel-title">📊 ${t('marketTitle')}</span><button class="btn-close" onclick="UI.closePanel('market')">X</button></div><div class="panel-body" id="market-view"></div></div>
 
         <div class="fab-container"><button onclick="Engine.endDay()" class="btn btn-primary btn-massive">${t('endDay')}</button></div>
     `,
@@ -184,6 +198,7 @@ const UI = {
                 <div class="settings-row mt-2"><label>🎨 ${t('theme')}</label>
                     <select class="fancy-select" onchange="App.setTheme(this.value)">
                         <option value="theme-modern" ${App.state.theme === 'theme-modern' ? 'selected' : ''}>${t('themeModern')}</option>
+                        <option value="theme-dark" ${App.state.theme === 'theme-dark' ? 'selected' : ''}>${t('themeDark')}</option>
                         <option value="theme-classic" ${App.state.theme === 'theme-classic' ? 'selected' : ''}>${t('themeClassic')}</option>
                         <option value="theme-medieval" ${App.state.theme === 'theme-medieval' ? 'selected' : ''}>${t('themeMedieval')}</option>
                     </select>
@@ -240,7 +255,7 @@ const UI = {
             }
             Engine.checkQuests();
             
-            document.getElementById('s-date').innerText = `Ay ${g.month} / Hft ${g.week} / Gn ${g.day}`;
+            document.getElementById('s-date').innerText = `${t('month')} ${g.month} / ${t('week')} ${g.week} / ${t('day')} ${g.day}`;
             document.getElementById('s-money').innerText = App.formatMoney(g.money);
             
             let mBoost = g.marketingBoost; if(g.skills && g.skills.marketingPro && g.skills.marketingPro.unlocked) mBoost *= 1.5;
@@ -275,6 +290,8 @@ const UI = {
             if (UI.currentTab === 'tab-staff') UI.renderStaffTab();
             if (UI.currentTab === 'tab-b2b') UI.renderB2BTab();
             
+            if (document.getElementById('panel-penthouse') && document.getElementById('panel-penthouse').classList.contains('open')) UI.renderPenthousePanel();
+            if (document.getElementById('panel-espionage') && document.getElementById('panel-espionage').classList.contains('open')) UI.renderEspionagePanel();
             if (document.getElementById('panel-finance') && document.getElementById('panel-finance').classList.contains('open')) UI.renderFinancePanel();
             if (document.getElementById('panel-rd') && document.getElementById('panel-rd').classList.contains('open')) UI.renderRDPanel();
             if (document.getElementById('panel-upgrades') && document.getElementById('panel-upgrades').classList.contains('open')) UI.renderUpgradesPanel();
@@ -291,10 +308,23 @@ const UI = {
     },
 
     renderShopTab: () => {
-        let g = App.state.g; let h = `<div class="page-header">${t('shop')}</div>`;
+        let g = App.state.g; let h = `<div class="page-header">${t('shopTitle')}</div>`;
+
+        // Kasa Rush Mini-Oyunu Banner
+        h += `<div class="panel mb-2" style="background:linear-gradient(135deg, rgba(241,196,15,0.18), rgba(243,156,18,0.12)); border:1px solid rgba(243,156,18,0.4);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div>
+                    <div style="font-weight:900; font-size:1.05rem; color:#d35400;">${t('cashierRushTitle')}</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">${t('cashierRushSub')}</div>
+                </div>
+                <button class="btn btn-warning" onclick="Engine.startCashierRushMinigame()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${t('cashierRushBtn')}</button>
+            </div>
+        </div>`;
+
         if (g.blackMarketActive && g.blackMarketItem) {
             let p = GameData.products[g.blackMarketItem]; let price = Math.floor(p.buy * 0.2); 
-            h += `<div class="panel" style="border:2px solid #e74c3c; background:#ffeaa7;"><h3 style="color:#c0392b;">🕵️ Karaborsa</h3><div class="item-row blackmarket"><div class="item-info"><span class="item-title">${p.name}</span><span class="item-sub">Fiyat: ${App.formatMoney(price)}</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.buyBlackMarket(10)">10 Al</button></div></div></div>`;
+            let pName = tProduct(g.blackMarketItem);
+            h += `<div class="panel" style="border:2px solid #e74c3c; background:#ffeaa7;"><h3 style="color:#c0392b;">${t('blackMarketTitle')}</h3><div style="font-size:0.8rem; color:#7f1d1d; margin-bottom:8px;">${t('blackMarketDesc')}</div><div class="item-row blackmarket"><div class="item-info"><span class="item-title">${pName}</span><span class="item-sub">${t('costUnit')}: ${App.formatMoney(price)}</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.buyBlackMarket(10)">10 ${t('wholesaleBuy')}</button></div></div></div>`;
         }
         for (let k in GameData.products) {
             if (!g.unlocked[k]) continue;
@@ -302,24 +332,25 @@ const UI = {
             let basePrice = Engine.getProductBuyPrice(k);
             let sellWholesale = Math.floor(basePrice * 0.5);
             let stock = g.inventory[k] || 0;
+            let pName = tProduct(k);
             h += `<div class="item-row" style="flex-wrap: wrap; gap: 10px;">
                 <div class="item-info" style="flex: 1; min-width: 140px;">
-                    <span class="item-title">${p.name} (Stok: ${stock})</span>
-                    <span class="item-sub">Alış: ${App.formatMoney(basePrice)} | İade: ${App.formatMoney(sellWholesale)}</span>
-                    <span class="item-sub">Hacim: ${p.space} br</span>
+                    <span class="item-title">${pName} (${t('stockLabel')}: ${stock})</span>
+                    <span class="item-sub">${t('costUnit')}: ${App.formatMoney(basePrice)} | ${t('refundUnit')}: ${App.formatMoney(sellWholesale)}</span>
+                    <span class="item-sub">${t('spaceUnit')}: ${p.space} br</span>
                 </div>
                 <div class="item-action" style="flex-direction:row; flex-wrap:wrap; gap:5px; justify-content:flex-end;">
-                    <button class="btn btn-danger" onclick="Engine.sellProductWholesale('${k}', 10)" ${stock < 10 ? 'disabled' : ''}>10 Sat</button>
-                    <button class="btn" onclick="Engine.buyProduct('${k}', 1)">1 Al</button>
-                    <button class="btn btn-purple" onclick="Engine.buyProduct('${k}', 10)">10 Al</button>
+                    <button class="btn btn-danger" onclick="Engine.sellProductWholesale('${k}', 10)" ${stock < 10 ? 'disabled' : ''}>10 ${t('wholesaleSell')}</button>
+                    <button class="btn" onclick="Engine.buyProduct('${k}', 1)">1 ${t('wholesaleBuy')}</button>
+                    <button class="btn btn-purple" onclick="Engine.buyProduct('${k}', 10)">10 ${t('wholesaleBuy')}</button>
                 </div>
             </div>`;
         }
         document.getElementById('shop-view').innerHTML = h;
     },
     
-        renderInvTab: () => {
-        let g = App.state.g; let h = `<div class="page-header">🏪 ${t('inv')}</div>`;
+    renderInvTab: () => {
+        let g = App.state.g; let h = `<div class="page-header">${t('invTitle')}</div>`;
         for (let k in GameData.products) {
             if(g.unlocked[k]) {
                 let p = GameData.products[k];
@@ -330,16 +361,17 @@ const UI = {
                     if (g.pricing[k] === 'cheap') currentPrice = Math.floor(baseSell * 0.7);
                     else if (g.pricing[k] === 'expensive') currentPrice = Math.floor(baseSell * 1.5);
                 }
+                let pName = tProduct(k);
 
                 h += `<div class="panel mb-2">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid rgba(0,0,0,0.05); padding-bottom:8px; margin-bottom:12px;">
-                        <span style="font-weight:900; font-size:1.2rem; color:var(--primary-dark); text-shadow:0 1px 2px rgba(0,0,0,0.1);">${p.name} Reyonu</span>
-                        <span style="background:var(--primary); color:white; padding:6px 12px; border-radius:12px; font-size:0.9rem; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2);">📦 Stok: ${g.inventory[k]}</span>
+                        <span style="font-weight:900; font-size:1.2rem; color:var(--primary-dark); text-shadow:0 1px 2px rgba(0,0,0,0.1);">${pName} ${t('aisleTitle')}</span>
+                        <span style="background:var(--primary); color:white; padding:6px 12px; border-radius:12px; font-size:0.9rem; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2);">📦 ${t('stockLabel')}: ${g.inventory[k]}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border: 1px solid rgba(0,0,0,0.05);">
                         <div style="display:flex; flex-direction:column; gap:4px;">
-                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">Birim Maliyet: <b style="color:var(--danger);">${App.formatMoney(Engine.getProductBuyPrice(k))}</b></span>
-                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">Önerilen: <b>${App.formatMoney(baseSell)}</b></span>
+                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">${t('unitCost')}: <b style="color:var(--danger);">${App.formatMoney(Engine.getProductBuyPrice(k))}</b></span>
+                            <span style="font-size:0.8rem; font-weight:800; color:var(--text-light);">${t('recPrice')}: <b>${App.formatMoney(baseSell)}</b></span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px; background:white; padding:5px 8px; border-radius:12px; border:2px solid var(--primary); box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                             <button class="btn btn-danger" style="padding:4px 12px; font-size:1.4rem; font-weight:900; border-radius:8px; line-height:1;" onclick="Engine.adjustPrice('${k}', -1)">-</button>
@@ -350,17 +382,18 @@ const UI = {
                 </div>`;
             }
         }
-        h += '<div class="page-header mt-2">🔨 Yeni Reyon Kur</div>';
+        h += `<div class="page-header mt-2">${t('newAisleTitle')}</div>`;
         for (let k in GameData.products) {
             if (!g.unlocked[k]) {
                 let p = GameData.products[k];
+                let pName = tProduct(k);
                 let questReq = p.reqQuest && (!g.quests[p.reqQuest] || !g.quests[p.reqQuest].done);
                 if (p.reqBuild > g.buildingLevel) {
-                    h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${p.name} Reyonu</span><span class="item-sub" style="color:var(--danger);">Seviye ${p.reqBuild} Bina Gerekli</span></div></div>`;
+                    h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${pName} ${t('aisleTitle')}</span><span class="item-sub" style="color:var(--danger);">${t('reqBuilding').replace('{n}', p.reqBuild)}</span></div></div>`;
                 } else if (questReq) {
-                    h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${p.name} Reyonu</span><span class="item-sub" style="color:var(--danger);">"${g.quests[p.reqQuest].title}" Görevi Tamamlanmalı</span></div></div>`;
+                    h += `<div class="item-row" style="opacity:0.6;"><div class="item-info"><span class="item-title">🔒 ${pName} ${t('aisleTitle')}</span><span class="item-sub" style="color:var(--danger);">"${g.quests[p.reqQuest].title}" ${t('reqQuestDone')}</span></div></div>`;
                 } else {
-                    h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">🛒 ${p.name} Reyonu</span><span class="item-sub">Kurulum Maliyeti: ${App.formatMoney(p.unlock)}</span></div><div class="item-action"><button class="btn btn-warning" onclick="Engine.unlockDept('${k}')">Kur</button></div></div>`;
+                    h += `<div class="item-row upgrade"><div class="item-info"><span class="item-title">🛒 ${pName} ${t('aisleTitle')}</span><span class="item-sub">${t('installCost')}: ${App.formatMoney(p.unlock)}</span></div><div class="item-action"><button class="btn btn-warning" onclick="Engine.unlockDept('${k}')">${t('buildAisleBtn')}</button></div></div>`;
                 }
             }
         }
@@ -373,27 +406,27 @@ const UI = {
         let maxLimit = Engine.getMaxStaffLimit();
         let fillPct = Math.min(100, (total / maxLimit) * 100);
 
-        let h = `<div class="page-header">${t('staff')}</div>`;
+        let h = `<div class="page-header">${t('staffTitle')}</div>`;
 
         // Capacity Progress Card
         h += `<div class="panel mb-2">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-weight:900; font-size:1.1rem; color:var(--primary-dark);">👥 Personel Kadrosu</span>
-                <span style="font-weight:bold; font-size:1rem; color:${total >= maxLimit ? 'var(--danger)' : 'var(--primary)'};">${total} / ${maxLimit} Kişi</span>
+                <span style="font-weight:900; font-size:1.1rem; color:var(--primary-dark);">👥 ${t('staffLimit')}</span>
+                <span style="font-weight:bold; font-size:1rem; color:${total >= maxLimit ? 'var(--danger)' : 'var(--primary)'};">${total} / ${maxLimit}</span>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width:${fillPct}%; background:${total >= maxLimit ? 'var(--danger)' : 'var(--primary)'};"></div></div>
-            <div style="font-size:0.75rem; color:var(--text-light); margin-top:4px;">Bina Seviyesi: Sv. ${g.buildingLevel} (Daha büyük binalar daha fazla personel alır)</div>
+            <div style="font-size:0.75rem; color:var(--text-light); margin-top:4px;">${t('level')} ${g.buildingLevel} (${t('staffLimitSub')})</div>
         </div>`;
 
         // SGK Insurance Toggle Card
         h += `<div class="panel mb-2" style="background:${g.staffInsurance ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.08)'}; border:1px solid ${g.staffInsurance ? 'rgba(46, 204, 113, 0.4)' : 'rgba(231, 76, 60, 0.3)'};">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <div style="font-weight:900; font-size:1.05rem; color:${g.staffInsurance ? 'var(--success)' : 'var(--danger)'};">🛡️ Personel Sigortası (SGK)</div>
-                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">Maliyet: <b>$15/personel/gün</b> | Durum: <b>${g.staffInsurance ? 'Aktif (Korumalı)' : 'Kapalı (İstifa Riski)'}</b></div>
-                    <div style="font-size:0.75rem; color:var(--text-light); margin-top:2px;">${g.staffInsurance ? '✅ Personeller güvencede, istifalar ve davalar önlenir.' : '⚠️ Sigortasız çalışanlar istifa edebilir ve patron morali düşer!'}</div>
+                    <div style="font-weight:900; font-size:1.05rem; color:${g.staffInsurance ? 'var(--success)' : 'var(--danger)'};">${t('staffInsuranceTitle')}</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">${t('staffInsuranceCost')} | <b>${g.staffInsurance ? t('staffInsuranceActive') : t('staffInsuranceInactive')}</b></div>
+                    <div style="font-size:0.75rem; color:var(--text-light); margin-top:2px;">${g.staffInsurance ? t('staffInsuranceDescOn') : t('staffInsuranceDescOff')}</div>
                 </div>
-                <button class="btn ${g.staffInsurance ? 'btn-green' : 'btn-danger'}" onclick="Engine.toggleStaffInsurance()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${g.staffInsurance ? 'Sigortalı ✅' : 'Sigorta Aç'}</button>
+                <button class="btn ${g.staffInsurance ? 'btn-green' : 'btn-danger'}" onclick="Engine.toggleStaffInsurance()" style="font-weight:bold; white-space:nowrap; padding:8px 12px;">${g.staffInsurance ? t('staffInsuranceBtnOn') : t('staffInsuranceBtnOff')}</button>
             </div>
         </div>`;
 
@@ -402,17 +435,18 @@ const UI = {
             let count = (g.staff && g.staff[k]) ? g.staff[k] : 0;
             let hireCost = Engine.getStaffHireCost(k);
             let atLimit = total >= maxLimit;
+            let sName = tStaff(k);
 
             h += `<div class="item-row">
                 <div class="item-info">
-                    <span class="item-title">${s.name} (${count})</span>
+                    <span class="item-title">${sName} (${count})</span>
                     <span class="item-sub" style="color:var(--text-dark);">${s.desc}</span>
-                    <span class="item-sub" style="color:var(--danger); font-weight:bold;">Maaş: ${App.formatMoney(s.wage)}/Gün</span>
-                    <span class="item-sub" style="color:var(--text-light); font-size:0.75rem;">Sonraki Alım: ${App.formatMoney(hireCost)} (Kademeli Artış)</span>
+                    <span class="item-sub" style="color:var(--danger); font-weight:bold;">${t('wageDaily').replace('{cost}', App.formatMoney(s.wage))}</span>
+                    <span class="item-sub" style="color:var(--text-light); font-size:0.75rem;">${t('nextHireCost').replace('{cost}', App.formatMoney(hireCost))}</span>
                 </div>
                 <div class="item-action" style="flex-direction:row; align-items:center; gap:6px;">
-                    ${count > 0 ? `<button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger); padding:6px 10px;" onclick="Engine.fireStaff('${k}')">Çıkar</button>` : ''}
-                    <button class="btn btn-primary" onclick="Engine.hireStaff('${k}')" ${atLimit ? 'disabled' : ''}>İşe Al<br>(${App.formatMoney(hireCost)})</button>
+                    ${count > 0 ? `<button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger); padding:6px 10px;" onclick="Engine.fireStaff('${k}')">${t('fireStaffBtn')}</button>` : ''}
+                    <button class="btn btn-primary" onclick="Engine.hireStaff('${k}')" ${atLimit ? 'disabled' : ''}>${t('hireStaffBtn')}<br>(${App.formatMoney(hireCost)})</button>
                 </div>
             </div>`; 
         }
@@ -421,24 +455,26 @@ const UI = {
     
     renderB2BTab: () => {
         let g = App.state.g; 
-        let h = `<div class="page-header">${t('b2b')}</div><div class="panel text-center">Kurumsal İtibar: <strong class="purple" style="font-size:1.2rem;">${g.corporateRep || 0} REP</strong><br><small class="text-muted">İhaleleri zamanında teslim ederek itibar kazanın.</small></div>`;
-        h += `<div class="page-header mt-2">Gelen Teklifler</div>`;
-        if(!g.availableContracts || g.availableContracts.length === 0) h += `<div class="panel text-center">Şu an açık bir ihale yok.</div>`;
+        let h = `<div class="page-header">${t('b2bTitle')}</div><div class="panel text-center">${t('corpRep')}: <strong class="purple" style="font-size:1.2rem;">${g.corporateRep || 0} REP</strong><br><small class="text-muted">${t('corpRepSub')}</small></div>`;
+        h += `<div class="page-header mt-2">${t('incomingBids')}</div>`;
+        if(!g.availableContracts || g.availableContracts.length === 0) h += `<div class="panel text-center">${t('noIncomingBids')}</div>`;
         else {
             g.availableContracts.forEach((c, idx) => {
                 if(c.isBribe) {
-                    h += `<div class="item-row" style="background:#fff3cd; border-color:#ffeeba;"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">Gizli bir ödeme karşılığı iyilik isteniyor.</span><span class="item-sub green">Ödeme: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Bedeli: İtibar Kaybı</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.acceptContract(${idx})">Kabul Et</button></div></div>`;
+                    h += `<div class="item-row" style="background:#fff3cd; border-color:#ffeeba;"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">Gizli bir ödeme karşılığı iyilik isteniyor.</span><span class="item-sub green">${t('rewardLabel')}: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Bedeli: İtibar Kaybı</span></div><div class="item-action"><button class="btn btn-danger" onclick="Engine.acceptContract(${idx})">${t('acceptBidBtn')}</button></div></div>`;
                 } else {
-                    h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">İstenen: <strong>${c.qty}x ${GameData.products[c.item].name}</strong> (${c.days} Gün)</span><span class="item-sub green">Ödül: ${App.formatMoney(c.reward)}</span><span class="item-sub red">Ceza: -${App.formatMoney(c.penalty)}</span></div><div class="item-action"><button class="btn btn-purple" onclick="Engine.acceptContract(${idx})">Kabul Et</button></div></div>`;
+                    let pName = tProduct(c.item);
+                    h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client}</span><span class="item-sub">${t('requestedLabel')}: <strong>${c.qty}x ${pName}</strong> (${c.days} ${t('day')})</span><span class="item-sub green">${t('rewardLabel')}: ${App.formatMoney(c.reward)}</span><span class="item-sub red">${t('penaltyLabel')}: -${App.formatMoney(c.penalty)}</span></div><div class="item-action"><button class="btn btn-purple" onclick="Engine.acceptContract(${idx})">${t('acceptBidBtn')}</button></div></div>`;
                 }
             });
         }
-        h += `<div class="page-header mt-2">Aktif Sözleşmeler</div>`;
-        if(!g.contracts || g.contracts.length === 0) h += `<div class="panel text-center">Aktif sözleşmen bulunmuyor.</div>`;
+        h += `<div class="page-header mt-2">${t('activeContracts')}</div>`;
+        if(!g.contracts || g.contracts.length === 0) h += `<div class="panel text-center">${t('noActiveContracts')}</div>`;
         else {
             g.contracts.forEach((c, idx) => {
                 let hasEnough = g.inventory[c.item] >= c.qty;
-                h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client} <span class="red">(${c.days} Gün Kaldı)</span></span><span class="item-sub">İstenen: <strong>${c.qty}x ${GameData.products[c.item].name}</strong></span><span class="item-sub ${hasEnough?'green':'red'}">Depoda: ${g.inventory[c.item]||0} / ${c.qty}</span></div><div class="item-action"><button class="btn btn-green" onclick="Engine.fulfillContract(${idx})" ${hasEnough?'':'disabled'}>Teslim Et</button></div></div>`;
+                let pName = tProduct(c.item);
+                h += `<div class="item-row"><div class="item-info"><span class="item-title">${c.client} <span class="red">(${c.days} ${t('daysRemaining')})</span></span><span class="item-sub">${t('requestedLabel')}: <strong>${c.qty}x ${pName}</strong></span><span class="item-sub ${hasEnough?'green':'red'}">${t('stockLabel')}: ${g.inventory[c.item]||0} / ${c.qty}</span></div><div class="item-action"><button class="btn btn-green" onclick="Engine.fulfillContract(${idx})" ${hasEnough?'':'disabled'}>${t('deliverBidBtn')}</button></div></div>`;
             });
         }
         document.getElementById('b2b-view').innerHTML = h;
@@ -455,21 +491,21 @@ const UI = {
         }
 
         if (g.activeLoans.length > 0) {
-            loansHTML += `<div style="font-size:0.9rem; font-weight:bold; color:var(--danger); margin-top:15px; margin-bottom:5px;">💳 Aktif Kredilerin:</div>`;
+            loansHTML += `<div style="font-size:0.9rem; font-weight:bold; color:var(--danger); margin-top:15px; margin-bottom:5px;">${t('activeLoansTitle')}:</div>`;
             g.activeLoans.forEach((l, idx) => {
                 loansHTML += `<div class="item-row" style="background:rgba(231,76,60,0.05); border:1px solid rgba(231,76,60,0.2);">
                     <div class="item-info">
                         <span class="item-title">${l.type}</span>
-                        <span class="item-sub" style="color:var(--text-dark);">Kalan: ${l.daysLeft} Gün (Günlük: ${App.formatMoney(l.dailyPayment)})</span>
+                        <span class="item-sub" style="color:var(--text-dark);">${t('daysRemaining')}: ${l.daysLeft} ${t('day')} (Günlük: ${App.formatMoney(l.dailyPayment)})</span>
                         <span class="item-sub red" style="font-weight:bold;">Toplam Borç: ${App.formatMoney(l.total)}</span>
                     </div>
-                    <div class="item-action"><button class="btn btn-danger" onclick="Engine.payOffLoan(${idx})">Kapat</button></div>
+                    <div class="item-action"><button class="btn btn-danger" onclick="Engine.payOffLoan(${idx})">${t('payOffLoanBtn')}</button></div>
                 </div>`;
             });
         }
 
         h += `<div class="panel mb-2">
-            <div style="font-weight:900; font-size:1.2rem; margin-bottom:10px; color:var(--primary-dark); text-align:center;">🏦 Kredi Paketleri</div>
+            <div style="font-weight:900; font-size:1.2rem; margin-bottom:10px; color:var(--primary-dark); text-align:center;">${t('loansTitle')}</div>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <div class="item-row" style="padding:10px; border:1px solid #ddd; background: #fafafa;">
                     <div class="item-info">
@@ -499,10 +535,10 @@ const UI = {
             ${loansHTML}
         </div>`;
 
-        h += `<div class="item-row mb-2"><div class="item-info"><span class="item-title">Vadeli Mevduat</span><span class="item-sub green">Bakiye: ${App.formatMoney(g.deposits)} (Günlük %2 Kazanç)</span></div><div class="item-action" style="flex-direction:row;"><button class="btn" onclick="Engine.depositMoney(10000)">+10K Yatır</button><button class="btn btn-green" onclick="Engine.withdrawMoney(10000)">Çek</button></div></div>`;
+        h += `<div class="item-row mb-2"><div class="item-info"><span class="item-title">${t('depositTitle')}</span><span class="item-sub green">${t('depositBalance')}: ${App.formatMoney(g.deposits)} (%2/Gün)</span></div><div class="item-action" style="flex-direction:row;"><button class="btn" onclick="Engine.depositMoney(10000)">+10K ${t('depositBtn')}</button><button class="btn btn-green" onclick="Engine.withdrawMoney(10000)">${t('withdrawBtn')}</button></div></div>`;
         
-        h += '<div class="page-header mt-2" style="font-size:1.2rem;">📈 Borsa & Kripto</div>';
-        for (let s in g.stocks) { let stock = g.stocks[s]; let n = s==='doge'?'DogeCoin':(s==='gold'?'Altın':s); h += `<div class="item-row stock"><div class="item-info"><span class="item-title">${n}</span><span class="item-sub">Fiyat: ${App.formatMoney(stock.price)}</span><span class="item-sub green">Sende: ${stock.shares} Hisse</span></div><div class="item-action" style="flex-direction:row;"><button class="btn btn-green" onclick="Engine.buyStock('${s}')">Al</button><button class="btn btn-danger" onclick="Engine.sellStock('${s}')">Sat</button></div></div>`; }
+        h += `<div class="page-header mt-2" style="font-size:1.2rem;">${t('stocksTitle')}</div>`;
+        for (let s in g.stocks) { let stock = g.stocks[s]; let n = s==='doge'?'DogeCoin':(s==='gold'?'Altın':s); h += `<div class="item-row stock"><div class="item-info"><span class="item-title">${n}</span><span class="item-sub">${t('stockPrice')}: ${App.formatMoney(stock.price)}</span><span class="item-sub green">${t('stockShares')}: ${stock.shares}</span></div><div class="item-action" style="flex-direction:row;"><button class="btn btn-green" onclick="Engine.buyStock('${s}')">${t('buyStockBtn')}</button><button class="btn btn-danger" onclick="Engine.sellStock('${s}')">${t('sellStockBtn')}</button></div></div>`; }
         document.getElementById('finance-view').innerHTML = h;
     },
     
@@ -954,6 +990,7 @@ const UI = {
         h += `<div class="settings-row mt-2"><label style="font-weight:bold;">🎨 ${t('theme')}</label>
             <select class="fancy-select" onchange="App.setTheme(this.value)" style="width:50%;">
                 <option value="theme-modern" ${App.state.theme === 'theme-modern' ? 'selected' : ''}>${t('themeModern')}</option>
+                <option value="theme-dark" ${App.state.theme === 'theme-dark' ? 'selected' : ''}>${t('themeDark')}</option>
                 <option value="theme-classic" ${App.state.theme === 'theme-classic' ? 'selected' : ''}>${t('themeClassic')}</option>
                 <option value="theme-medieval" ${App.state.theme === 'theme-medieval' ? 'selected' : ''}>${t('themeMedieval')}</option>
             </select></div>`;
@@ -964,6 +1001,76 @@ const UI = {
             </select></div>`;
         h += `</div>`;
         document.getElementById('settings-view').innerHTML = h;
+    },
+
+    renderPenthousePanel: () => {
+        let g = App.state.g;
+        if (!g.penthouse) g.penthouse = {};
+        const items = [
+            { id: 'espresso', icon: '☕', name: 'Altın Espresso Makinesi', cost: 5000, desc: 'Tüm mağazada müşteri talebi ve satış hızı +%8 artar.' },
+            { id: 'chair', icon: '💆', name: 'İtalyan Masaj Koltuğu', cost: 12000, desc: 'Her gün sonu Patron Morali otomatik +3 yenilenir.' },
+            { id: 'parrot', icon: '🦜', name: "Şans Papağanı 'Korsan'", cost: 30000, desc: '%25 şansla her gün zengin bir turistten +$5,000 ek hasılat!' },
+            { id: 'dojo', icon: '🥋', name: 'Özel Zen Bahçesi & Dojo', cost: 75000, desc: 'Duruşma zarlarında her zaman +1 ekstra zar avantajı.' },
+            { id: 'helipad', icon: '🚁', name: 'Çatı Katı Helikopter Pisti', cost: 200000, desc: 'Uluslararası VIP ihaleler; B2B kazançları %40 artar!' },
+            { id: 'vault', icon: '🔐', name: 'Mücevher Kasası & Kripto Cüzdanı', cost: 500000, desc: 'Kasa eksiye düşerse anında $50,000 acil kurtarma fonu açar!' }
+        ];
+
+        let h = `<div class="panel text-center mb-2" style="background:linear-gradient(135deg, #f39c12, #d35400); color:white; padding:15px;">
+            <div style="font-size:1.4rem; font-weight:900;">${t('penthouseTitle')}</div>
+            <div style="font-size:0.85rem; opacity:0.9;">${t('penthouseSub')}</div>
+        </div>`;
+
+        items.forEach(it => {
+            let owned = !!g.penthouse[it.id];
+            h += `<div class="panel mb-2" style="display:flex; justify-content:space-between; align-items:center; gap:10px; border:${owned ? '2px solid var(--success)' : '1px solid var(--border)'}; background:${owned ? 'rgba(46,204,113,0.08)' : 'var(--bg)'};">
+                <div style="font-size:2.5rem; min-width:50px; text-align:center;">${it.icon}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:900; font-size:1.05rem; color:var(--primary-dark);">${it.name} ${owned ? '✅' : ''}</div>
+                    <div style="font-size:0.8rem; color:var(--text-dark); margin-top:2px;">${it.desc}</div>
+                    <div style="font-size:0.85rem; font-weight:bold; color:var(--danger); margin-top:4px;">${owned ? '<span class="green">Penthouse Koleksiyonunda Aktif</span>' : App.formatMoney(it.cost)}</div>
+                </div>
+                <div>
+                    ${owned ? '<button class="btn btn-green btn-sm" disabled>Sahipsin ✅</button>' : `<button class="btn btn-warning btn-sm" onclick="Engine.buyPenthouseItem('${it.id}')">Satın Al</button>`}
+                </div>
+            </div>`;
+        });
+
+        document.getElementById('penthouse-view').innerHTML = h;
+    },
+
+    renderEspionagePanel: () => {
+        let g = App.state.g;
+        let h = `<div class="panel text-center mb-2" style="background:linear-gradient(135deg, #2c3e50, #1a252f); color:white; padding:15px;">
+            <div style="font-size:1.4rem; font-weight:900;">${t('espionageTitle')}</div>
+            <div style="font-size:0.85rem; opacity:0.9;">${t('espionageSub')}</div>
+        </div>`;
+
+        if (g.espionageActive) {
+            h += `<div class="panel mb-2" style="background:rgba(52,152,219,0.15); border:1px solid var(--primary); text-align:center; font-weight:bold;">
+                🕵️ Aktif Operasyon: Fiyat Casusu devrede! (Kalan: ${g.espionageActive.daysLeft} Gün - Tüm alışlarda %15 indirim)
+            </div>`;
+        }
+
+        const missions = [
+            { type: 'cost', icon: '📉', name: 'Fiyat Casusu Sızdır', cost: 3000, desc: 'Toptancı tedarik zincirine sızar. 5 gün boyunca tüm ürün alış fiyatları %15 ucuzlar.' },
+            { type: 'sabotage', icon: '🐀', name: 'Gizli Denetim & Hijyen Sabotajı', cost: 10000, desc: "Rakibe ani sağlık müfettişi salar! %80 şansla pazar payından +%5 kaparsın." },
+            { type: 'headhunt', icon: '👔', name: 'Rakip Müdürünü Transfer Et', cost: 35000, desc: 'Rakibin baş yöneticisini ayartırsın! Rakip pazar payı %10 çöker, 1x Müdür şirketine geçer.' }
+        ];
+
+        missions.forEach(m => {
+            h += `<div class="panel mb-2" style="border:1px solid var(--border); padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span style="font-weight:900; font-size:1.05rem;">${m.icon} ${m.name}</span>
+                    <span style="color:var(--danger); font-weight:bold; font-size:0.95rem;">${App.formatMoney(m.cost)}</span>
+                </div>
+                <div style="font-size:0.82rem; color:var(--text-dark); margin-bottom:10px;">${m.desc}</div>
+                <div style="text-align:right;">
+                    <button class="btn btn-purple btn-sm" onclick="Engine.startEspionage('${m.type}')">Operasyonu Başlat (${App.formatMoney(m.cost)})</button>
+                </div>
+            </div>`;
+        });
+
+        document.getElementById('espionage-view').innerHTML = h;
     },
 
     renderRoadmapPanel: () => {
@@ -1000,11 +1107,11 @@ const UI = {
         let content = `
             <div style="background:var(--bg); border:1px solid var(--border); border-radius:15px; padding:12px; margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-around; align-items:center; font-weight:900;">
-                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">KAZANÇ</span><span class="green">+${App.formatMoney(rep.revenue)}</span></div>
+                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">${t('reportRevenue')}</span><span class="green">+${App.formatMoney(rep.revenue)}</span></div>
                     <div style="font-size:1.2rem; color:var(--text-light);">|</div>
-                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">GİDER</span><span class="red">-${App.formatMoney(rep.expenses)}</span></div>
+                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">${t('reportExpenses')}</span><span class="red">-${App.formatMoney(rep.expenses)}</span></div>
                     <div style="font-size:1.2rem; color:var(--text-light);">|</div>
-                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">NET KAR</span><span class="${isProfit ? 'green' : 'red'}">${isProfit ? '+' : ''}${App.formatMoney(rep.netProfit)}</span></div>
+                    <div><span style="font-size:0.75rem; color:var(--text-light); display:block;">${isProfit ? t('reportNetProfit') : t('reportNetLoss')}</span><span class="${isProfit ? 'green' : 'red'}">${isProfit ? '+' : ''}${App.formatMoney(rep.netProfit)}</span></div>
                 </div>
                 <div class="mt-2" style="font-style:italic; font-size:0.85rem; color:var(--text-dark); border-top:1px dashed var(--border); padding-top:6px;">
                     "${rep.randomReview}"
@@ -1013,10 +1120,10 @@ const UI = {
 
             <!-- Tab Buttons -->
             <div class="endday-tabs">
-                <button class="endday-tab active" id="tab-btn-kasa" onclick="UI.switchEndDayTab('kasa')">💰 Kasa (${rep.tabKasa ? rep.tabKasa.length : 0})</button>
-                <button class="endday-tab" id="tab-btn-haberler" onclick="UI.switchEndDayTab('haberler')">📰 Pazar (${rep.tabHaberler ? rep.tabHaberler.length : 0})</button>
-                <button class="endday-tab" id="tab-btn-hukuk" onclick="UI.switchEndDayTab('hukuk')">⚖️ Hukuk (${rep.tabHukuk ? rep.tabHukuk.length : 0})</button>
-                <button class="endday-tab" id="tab-btn-duyurular" onclick="UI.switchEndDayTab('duyurular')">📢 Duyurular (${rep.tabDuyurular ? rep.tabDuyurular.length : 0})</button>
+                <button class="endday-tab active" id="tab-btn-kasa" onclick="UI.switchEndDayTab('kasa')">${t('tabKasa')} (${rep.tabKasa ? rep.tabKasa.length : 0})</button>
+                <button class="endday-tab" id="tab-btn-haberler" onclick="UI.switchEndDayTab('haberler')">${t('tabPazar')} (${rep.tabHaberler ? rep.tabHaberler.length : 0})</button>
+                <button class="endday-tab" id="tab-btn-hukuk" onclick="UI.switchEndDayTab('hukuk')">${t('tabHukuk')} (${rep.tabHukuk ? rep.tabHukuk.length : 0})</button>
+                <button class="endday-tab" id="tab-btn-duyurular" onclick="UI.switchEndDayTab('duyurular')">${t('tabDuyurular')} (${rep.tabDuyurular ? rep.tabDuyurular.length : 0})</button>
             </div>
 
             <!-- Tab Contents -->
@@ -1034,11 +1141,11 @@ const UI = {
             </div>
 
             <div class="mt-2 text-center" style="color:var(--success); font-weight:900; font-size:0.85rem;">
-                💾 İlerleme Otomatik Olarak Kaydedildi
+                ${t('progressSaved')}
             </div>
         `;
 
-        App.showModal("📅 Gün Sonu Raporu", content, `<button class="btn btn-primary" onclick="App.closeModal()">Tamam / Sonraki Gün</button>`);
+        App.showModal(t('endDayReportTitle'), content, `<button class="btn btn-primary" onclick="App.closeModal()">${t('endDayConfirmBtn')}</button>`);
     },
 
     switchEndDayTab: (tabKey) => {

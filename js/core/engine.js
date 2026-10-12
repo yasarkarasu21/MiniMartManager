@@ -11,6 +11,7 @@ const Engine = {
         if(g.relations && g.relations.wholesaler !== undefined) basePrice *= (1.3 - (g.relations.wholesaler / 100) * 0.6);
         if(g.skills && g.skills.negotiator && g.skills.negotiator.unlocked) basePrice *= 0.9;
         if(g.trendActive && g.trendActive.effect[p.category]) basePrice *= g.trendActive.effect[p.category];
+        if(g.espionageActive && g.espionageActive.type === 'cost') basePrice *= 0.85;
         return Math.max(1, Math.floor(basePrice));
     },
     getProductBaseSellPrice: (id) => {
@@ -185,6 +186,171 @@ const Engine = {
             Engine.addLog(`😎 Patron Morali: ${sign}${delta} (${reason}) -> %${g.bossMorale}`);
         }
     },
+    buyPenthouseItem: (itemId) => {
+        let g = App.state.g;
+        if (!g.penthouse) g.penthouse = {};
+        if (g.penthouse[itemId]) {
+            AudioSys.error();
+            App.showNotify("Bu prestij eşyasına zaten sahipsin!");
+            return;
+        }
+        const items = {
+            espresso: { name: "Altın Espresso Makinesi", cost: 5000, desc: "Tüm mağazada müşteri talebi ve satış hızı +%8 artar." },
+            chair: { name: "İtalyan Masaj Koltuğu", cost: 12000, desc: "Her gün sonu Patron Morali otomatik +3 yenilenir." },
+            parrot: { name: "Şans Papağanı 'Korsan'", cost: 30000, desc: "%25 şansla her gün zengin bir turistten +$5,000 ek hasılat!" },
+            dojo: { name: "Özel Zen Bahçesi & Dojo", cost: 75000, desc: "Duruşma zarlarında her zaman +1 ekstra zar avantajı." },
+            helipad: { name: "Çatı Katı Helikopter Pisti", cost: 200000, desc: "Uluslararası VIP ihaleler; B2B kazançları %40 artar!" },
+            vault: { name: "Mücevher Kasası & Kripto Cüzdanı", cost: 500000, desc: "Kasa eksiye düşerse anında $50,000 acil kurtarma fonu açar!" }
+        };
+        let it = items[itemId];
+        if (!it) return;
+        if (g.money >= it.cost) {
+            Engine.spendMoney(it.cost);
+            g.penthouse[itemId] = true;
+            Engine.adjustMorale(8, "Yeni Prestij Eşyası");
+            AudioSys.success();
+            App.showModal(`👑 ${it.name}!`, `Tebrikler Patron! Penthouse ofisine yeni bir lüks kattın.<br><br><b>Etki:</b> ${it.desc}<br><span class="green">+8 Patron Morali</span>`);
+            UI.update();
+        } else {
+            AudioSys.error();
+            App.showNotify("Yetersiz bakiye!");
+        }
+    },
+    startEspionage: (type) => {
+        let g = App.state.g;
+        const missions = {
+            cost: { name: "Fiyat Casusu", cost: 3000, desc: "Toptancı tedarik zincirine sızar. 5 gün boyunca alış fiyatları %15 ucuzlar." },
+            sabotage: { name: "Gizli Denetim & Sabotaj", cost: 10000, desc: "Rakibe hijyen müfettişi salar! %80 şansla pazar payından %5 kaparsın." },
+            headhunt: { name: "Rakip Müdürünü Transfer Et", cost: 35000, desc: "Rakibin baş yöneticisini ayartırsın! Rakip pazar payı %10 çöker, 1x Müdür şirketine geçer." }
+        };
+        let m = missions[type];
+        if (!m) return;
+        if (g.money < m.cost) {
+            AudioSys.error();
+            App.showNotify("Yetersiz bakiye!");
+            return;
+        }
+        Engine.spendMoney(m.cost);
+
+        if (type === 'cost') {
+            g.espionageActive = { type: 'cost', daysLeft: 5 };
+            AudioSys.success();
+            App.showModal("🕵️‍♂️ FİYAT CASUSU SIZDI!", "Ajanımız toptancı tedarik ağına sızdı! Önümüzdeki 5 gün boyunca tüm ürün alışlarında <b>%15 özel indirim</b> uygulandı!");
+        } else if (type === 'sabotage') {
+            let roll = Math.random();
+            if (roll < 0.8) {
+                let shareSteal = 5;
+                g.marketShare = Math.min(99, (g.marketShare || 5) + shareSteal);
+                Engine.adjustMorale(6, "Başarılı Rakip Sabotajı");
+                AudioSys.success();
+                App.showModal("🐀 SABOTAJ BAŞARILI!", `Müfettişler HyperMart'ı bastı ve kapatma cezası kesti!<br><span class="green">+%${shareSteal} Pazar Payı Kazandın!</span>`);
+            } else {
+                let fine = 15000;
+                if (!g.lawsuits) g.lawsuits = [];
+                g.lawsuits.push({ type: "Ticari Casusluk ve İtibar Suikastı", cost: fine, daysLeft: 4 });
+                Engine.adjustMorale(-8, "Casus Yakalandı!");
+                AudioSys.error();
+                App.showModal("🚨 AJAN YAKALANDI!", `Ajanımız suçüstü yakalandı! Rakip şirket ${App.formatMoney(fine)} tazminat davası açtı!<br><span class="red">-8 Patron Morali</span>`);
+            }
+        } else if (type === 'headhunt') {
+            if (!g.staff) g.staff = { cashier: 0, guard: 0, janitor: 0, warehouse: 0, manager: 0 };
+            g.staff.manager = (g.staff.manager || 0) + 1;
+            g.marketShare = Math.min(99, (g.marketShare || 5) + 10);
+            Engine.adjustMorale(10, "Yönetici Transferi");
+            AudioSys.success();
+            App.showModal("👔 RAKİP MÜDÜR TRANSFER EDİLDİ!", `HyperMart'ın baş yöneticisi şirketine katıldı!<br><span class="green">+10 Pazar Payı Kapıldı!</span><br><span class="green">+1 Mağaza Müdürü Kadrona Eklendi!</span>`);
+        }
+        UI.update();
+    },
+    startCashierRushMinigame: () => {
+        let g = App.state.g;
+        let timeLeft = 10;
+        let score = 0;
+        let combo = 1;
+        let products = [
+            { icon: '🍎', name: 'Elma' },
+            { icon: '🍞', name: 'Ekmek' },
+            { icon: '🥛', name: 'Süt' },
+            { icon: '🍫', name: 'Çikolata' },
+            { icon: '📱', name: 'Telefon' }
+        ];
+        let currentTarget = products[Math.floor(Math.random() * products.length)];
+
+        let renderModalContent = () => {
+            let btnsHtml = products.map(p => `
+                <button class="btn btn-outline" style="font-size:1.6rem; padding:8px; border-radius:12px;" onclick="Engine._cashierScan('${p.icon}')">${p.icon}</button>
+            `).join('');
+
+            return `
+                <div style="text-align:center; padding:5px 0;">
+                    <div style="display:flex; justify-content:space-around; align-items:center; font-weight:900; margin-bottom:12px;">
+                        <div>⏱️ Süre: <span id="cr-timer" class="red" style="font-size:1.3rem;">${timeLeft}s</span></div>
+                        <div>⭐ Puan: <span id="cr-score" class="green" style="font-size:1.3rem;">${score}</span></div>
+                        <div>🔥 Kombo: <span id="cr-combo" class="purple" style="font-size:1.1rem;">x${combo}</span></div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.04); border:2px dashed var(--primary); border-radius:16px; padding:12px; margin-bottom:12px;">
+                        <div style="font-size:0.8rem; font-weight:bold; color:var(--text-light); margin-bottom:4px;">Müşterinin Sıradaki Ürünü:</div>
+                        <div id="cr-target-icon" style="font-size:3.5rem;">${currentTarget.icon}</div>
+                        <div id="cr-target-name" style="font-weight:900; font-size:1.05rem; color:var(--primary);">${currentTarget.name}</div>
+                    </div>
+                    <div style="font-size:0.8rem; font-weight:bold; margin-bottom:8px;">Aşağıdan Doğru Barkoda Hızla Bas!</div>
+                    <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px;">
+                        ${btnsHtml}
+                    </div>
+                </div>
+            `;
+        };
+
+        App.showModal("⚡ Kasa Rush Mini-Oyunu", renderModalContent(), `<button class="btn btn-outline" disabled>Kasa Açık...</button>`);
+
+        let timerInterval = setInterval(() => {
+            timeLeft--;
+            let tEl = document.getElementById('cr-timer');
+            if (tEl) tEl.innerText = timeLeft + 's';
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                Engine._cashierScan = () => {};
+                let rewardCash = score * 250;
+                let rewardMorale = Math.min(10, Math.floor(score / 3) + 2);
+                Engine.earnMoney(rewardCash);
+                Engine.adjustMorale(rewardMorale, "Kasa Rush Zaferi");
+
+                let resultHtml = `
+                    <div style="text-align:center; padding:10px 0;">
+                        <div style="font-size:3rem;">🎉</div>
+                        <div style="font-weight:900; font-size:1.3rem; color:var(--success);">HARİKA PERFORMANS!</div>
+                        <div style="font-size:0.95rem; margin:10px 0;">10 saniyede toplam <b>${score} ürün</b> okuttun!</div>
+                        <div style="background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3); border-radius:12px; padding:12px; margin-top:10px;">
+                            <div class="green" style="font-weight:900; font-size:1.15rem;">+${App.formatMoney(rewardCash)} Hızlı Kasa Hasılatı</div>
+                            <div class="primary" style="font-weight:900; font-size:1.05rem; margin-top:4px;">+${rewardMorale} Patron Morali</div>
+                        </div>
+                    </div>
+                `;
+                App.showModal("⚡ Kasa Rush Bitti!", resultHtml, `<button class="btn btn-primary" onclick="App.closeModal()">Tamam</button>`);
+                UI.update();
+            }
+        }, 1000);
+
+        Engine._cashierScan = (scannedIcon) => {
+            if (scannedIcon === currentTarget.icon) {
+                if (typeof AudioSys !== 'undefined') AudioSys.cash();
+                score += combo;
+                combo++;
+            } else {
+                if (typeof AudioSys !== 'undefined') AudioSys.error();
+                combo = 1;
+            }
+            currentTarget = products[Math.floor(Math.random() * products.length)];
+            let sEl = document.getElementById('cr-score');
+            let cEl = document.getElementById('cr-combo');
+            let iconEl = document.getElementById('cr-target-icon');
+            let nameEl = document.getElementById('cr-target-name');
+            if (sEl) sEl.innerText = score;
+            if (cEl) cEl.innerText = 'x' + combo;
+            if (iconEl) iconEl.innerText = currentTarget.icon;
+            if (nameEl) nameEl.innerText = currentTarget.name;
+        };
+    },
     startCampaign: (id) => { let g = App.state.g; if (g.money >= GameData.marketing[id].cost) { Engine.spendMoney(GameData.marketing[id].cost); g.marketingBoost = GameData.marketing[id].pop; g.marketingDaysLeft = GameData.marketing[id].days; AudioSys.success(); App.showNotify("Kampanya Başladı!"); UI.update(); } else { AudioSys.error(); App.showNotify("Yetersiz bakiye!"); } },
     buyStorage: (id) => { 
         let g = App.state.g; 
@@ -358,7 +524,7 @@ const Engine = {
         let g = App.state.g;
         if (!g.lawsuits || !g.lawsuits[idx]) return;
         let law = g.lawsuits[idx];
-        let lawyerBonus = (g.lawyerLevel || 0) + (g.lawyerRaise ? 2 : 0);
+        let lawyerBonus = (g.lawyerLevel || 0) + (g.lawyerRaise ? 2 : 0) + ((g.penthouse && g.penthouse.dojo) ? 1 : 0);
 
         Engine.startDiceDuel({
             title: `⚖️ ${law.type} Duruşması`,
@@ -735,14 +901,16 @@ const Engine = {
         if(g.inventory[c.item] >= c.qty) {
             g.inventory[c.item] -= c.qty;
             g.currentStorage -= (c.qty * GameData.products[c.item].space);
-            Engine.earnMoney(c.reward);
+            let actReward = c.reward;
+            if (g.penthouse && g.penthouse.helipad) actReward = Math.floor(actReward * 1.4);
+            Engine.earnMoney(actReward);
             g.corporateRep = (g.corporateRep || 0) + 5;
             if (!g.stats) g.stats = { earned: 0, spent: 0, contractsCompleted: 0 };
             g.stats.contractsCompleted = (g.stats.contractsCompleted || 0) + 1;
             g.contracts.splice(idx, 1);
             Engine.addLog(`🤝 ${c.client} ihalesi başarıyla tamamlandı!`);
             AudioSys.success();
-            App.showModal("🏆 İHALE TAMAMLANDI!", `${c.client} şirketine teslimat yapıldı.<br>Kazanılan: <span class="green">+${App.formatMoney(c.reward)}</span><br>Kurumsal İtibar: <span class="green">+5</span>`);
+            App.showModal("🏆 İHALE TAMAMLANDI!", `${c.client} şirketine teslimat yapıldı.<br>Kazanılan: <span class="green">+${App.formatMoney(actReward)}</span><br>Kurumsal İtibar: <span class="green">+5</span>`);
             Engine.checkQuests();
             UI.update();
         } else { AudioSys.error(); App.showNotify("Depoda yeterli mal yok!"); }
@@ -964,9 +1132,10 @@ const Engine = {
         let marketShareMod = g.rivalDefeated ? 2.5 : (0.5 + ((g.marketShare||5) / 100)); 
         let childDemandBonus = (g.foundations && g.foundations.children) ? (1 + (g.foundations.children * 0.03)) : 1.0;
         
-        // Boss morale modifies daily customer demand
+        // Boss morale & Penthouse Espresso modifies daily customer demand
         let bossMoraleMod = 0.7 + (((g.bossMorale !== undefined) ? g.bossMorale : 80) / 100) * 0.5;
-        let demandMult = (currentPop / 50) * fpDemandBonus * marketShareMod * repBonus * childDemandBonus * bossMoraleMod; 
+        let espressoMod = (g.penthouse && g.penthouse.espresso) ? 1.08 : 1.0;
+        let demandMult = (currentPop / 50) * fpDemandBonus * marketShareMod * repBonus * childDemandBonus * bossMoraleMod * espressoMod; 
         let cashierBonus = (g.staff && g.staff.cashier ? g.staff.cashier : 0) * 5;
 
         for (let k in GameData.products) {
@@ -1288,6 +1457,38 @@ const Engine = {
             Engine.adjustMorale(-mLoss, "Günlük Zarar");
             logKasa(`📉 Günlük Net Zarar: <span class="red">-${App.formatMoney(Math.abs(netProfit))}</span> (-${mLoss} Moral)`);
         }
+
+        // CEO Penthouse Perks
+        if (g.penthouse) {
+            if (g.penthouse.chair) {
+                Engine.adjustMorale(3, "Masaj Koltuğu");
+                logDuyuru(`💆 <b>İtalyan Masaj Koltuğu:</b> Patron Morali +3 yenilendi.`);
+            }
+            if (g.penthouse.parrot && Math.random() < 0.25) {
+                let parrotBonus = 5000;
+                Engine.earnMoney(parrotBonus);
+                revenue += parrotBonus;
+                netProfit += parrotBonus;
+                logKasa(`🦜 <b>Şans Papağanı 'Korsan':</b> VIP turist çekti! <span class="green">+${App.formatMoney(parrotBonus)}</span>`);
+            }
+            if (g.penthouse.vault && g.money < 0) {
+                let bailout = 50000;
+                Engine.earnMoney(bailout);
+                logKasa(`🔐 <b>Kripto Kasası Acil Fonu:</b> İflas tehlikesi engellendi! <span class="green">+${App.formatMoney(bailout)}</span>`);
+            }
+        }
+
+        // Kurumsal Casusluk Sayaç
+        if (g.espionageActive && g.espionageActive.daysLeft !== undefined) {
+            g.espionageActive.daysLeft--;
+            if (g.espionageActive.daysLeft <= 0) {
+                logDuyuru(`🕵️ <b>Fiyat Casusu:</b> Görev süresi tamamlandı.`);
+                g.espionageActive = null;
+            } else {
+                logDuyuru(`🕵️ <b>Fiyat Casusu Aktif:</b> İndirim için ${g.espionageActive.daysLeft} gün kaldı.`);
+            }
+        }
+        g.cashierRushPlayedToday = false;
 
         let reviews = [];
         if(cheapCount > 2) reviews.push("Fiyatlar o kadar ucuz ki toptancı sandım! ⭐⭐⭐⭐⭐");

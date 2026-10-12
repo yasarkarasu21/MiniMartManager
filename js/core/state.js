@@ -57,6 +57,9 @@ const StateManager = {
             lawyerRaise: false,
             loginStreak: 1,
             lastLoginDate: "",
+            penthouse: { espresso: false, chair: false, parrot: false, dojo: false, helipad: false, vault: false },
+            espionageActive: null,
+            cashierRushPlayedToday: false,
             skills: {
                 negotiator: { name: 'Pazarlık Ustası', desc: 'Alış fiyatları kalıcı olarak %10 ucuzlar.', cost: 15, unlocked: false },
                 marketingPro: { name: 'Sosyal Medya Dahisi', desc: 'Reklam kampanyaları %50 daha fazla müşteri çeker.', cost: 20, unlocked: false },

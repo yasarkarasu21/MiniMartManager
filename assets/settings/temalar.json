@@ -29,6 +29,16 @@
       "dangerColor": "#b71c1c",
       "warningColor": "#f57f17",
       "fontFamily": "'Palatino Linotype', 'Book Antiqua', Palatino, serif"
+    },
+    "theme-dark": {
+      "id": "theme-dark",
+      "name": "Karanlık Mod (OLED)",
+      "primaryColor": "#6c5ce7",
+      "primaryDark": "#a29bfe",
+      "successColor": "#00b894",
+      "dangerColor": "#ff7675",
+      "warningColor": "#fdcb6e",
+      "fontFamily": "'Nunito', sans-serif"
     }
   },
   "defaultSettings": {

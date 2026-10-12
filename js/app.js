@@ -41,7 +41,7 @@ const App = {
         let rawState = StateManager.getSlots()[slotId];
         App.state.g = StateManager.getSafeState(rawState);
         App.navigate('game');
-        App.showNotify("Kariyer Yüklendi!", "success");
+        App.showNotify(t('careerLoaded'), "success");
         if (typeof Engine !== 'undefined' && Engine.checkDailyLoginBonus) {
             Engine.checkDailyLoginBonus();
         }
@@ -56,18 +56,28 @@ const App = {
         }
     },
     deleteCareer: (slotId) => {
-        App.showModal("Kariyeri Sil", "Bu kariyeri tamamen silmek istediğine emin misin? Bu işlem geri alınamaz.", `
+        App.showModal("Kariyeri Sil", t('delete'), `
             <button class="btn btn-danger" onclick="App.doDeleteCareer(${slotId})">Evet, Sil</button>
-            <button class="btn" onclick="App.closeModal()">Vazgeç</button>
+            <button class="btn" onclick="App.closeModal()">${t('back')}</button>
         `);
     },
     doDeleteCareer: (slotId) => {
         StateManager.deleteSlot(slotId); App.closeModal(); App.navigate('careers');
     },
+    _saveTimer: null,
     saveGame: (showMsg = false) => {
         if(App.state.currentSlot && App.state.g) {
-            StateManager.saveSlot(App.state.currentSlot, App.state.g);
-            if(showMsg) App.showNotify("💾 Oyun Kaydedildi", "success");
+            if (showMsg) {
+                if (App._saveTimer) { clearTimeout(App._saveTimer); App._saveTimer = null; }
+                StateManager.saveSlot(App.state.currentSlot, App.state.g);
+                App.showNotify(t('savedSuccess'), "success");
+            } else {
+                if (App._saveTimer) clearTimeout(App._saveTimer);
+                App._saveTimer = setTimeout(() => {
+                    StateManager.saveSlot(App.state.currentSlot, App.state.g);
+                    App._saveTimer = null;
+                }, 300);
+            }
         }
     },
 

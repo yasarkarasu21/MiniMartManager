@@ -22,13 +22,18 @@
 
 body.theme-classic {
     --bg-main: #c0c0c0; --bg-card: #d4d0c8; --primary: #000080;
-    --success: #008000; --danger: #800000; --text-dark: #000000;
+    --primary-dark: #000040; --success: #008000; --danger: #800000;
+    --text-dark: #000000; --text-muted: #333333;
     font-family: 'Courier New', Courier, monospace;
 }
 body.theme-classic .btn { border-radius: 0; border: 2px outset #ffffff; box-shadow: none; background: #d4d0c8; color: black; }
 body.theme-classic .btn:active { border: 2px inset #ffffff; transform: none; box-shadow: none; }
-body.theme-classic .panel, body.theme-classic .item-row { border-radius: 0; border: 2px inset #ffffff; box-shadow: none; background: #d4d0c8; }
+body.theme-classic .panel, body.theme-classic .item-row { border-radius: 0; border: 2px inset #ffffff; box-shadow: none; background: #d4d0c8; color: #000000; }
+body.theme-classic .item-title, body.theme-classic .mc-title, body.theme-classic .slot-name { color: #000080 !important; }
+body.theme-classic .item-sub { color: #222222 !important; }
 body.theme-classic .bottom-nav { background: #d4d0c8; }
+body.theme-classic #modal-box, body.theme-classic .floating-panel { background: #d4d0c8; color: #000000; border: 3px outset #ffffff; }
+body.theme-classic .panel-body { background: #d4d0c8; color: #000000; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
 html, body { height: 100%; width: 100%; overflow: hidden; background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); color: var(--text-dark); }
@@ -200,18 +205,21 @@ header {
 
 /* End Day Tab Navigation */
 .endday-tabs {
-    display: flex; border-bottom: 2px solid rgba(0,0,0,0.08);
-    gap: 4px; margin-bottom: 10px; flex-shrink: 0; overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 2px solid rgba(0,0,0,0.08);
+    gap: 4px; margin-bottom: 10px; flex-shrink: 0;
 }
 .endday-tab {
-    padding: 8px 12px; border: none; background: transparent;
-    font-weight: 800; font-size: 0.82rem; color: var(--text-muted);
-    cursor: pointer; border-radius: 10px 10px 0 0; white-space: nowrap;
+    padding: 8px 2px; border: none; background: transparent;
+    font-weight: 800; font-size: 0.75rem; color: var(--text-muted);
+    cursor: pointer; border-radius: 8px 8px 0 0; text-align: center;
+    white-space: normal; line-height: 1.2;
     transition: all 0.2s; border-bottom: 3px solid transparent;
 }
 .endday-tab.active {
     color: var(--primary); background: rgba(67, 97, 238, 0.08);
-    border-bottom: 3px solid var(--primary);
+    border-bottom: 3px solid var(--primary); font-weight: 900;
 }
 .endday-content { display: none; }
 .endday-content.active { display: block; animation: fadeUp 0.2s ease; }
@@ -463,3 +471,94 @@ body.theme-medieval .slot-card { background: #4e342e; border: 2px solid #8d6e63;
 body.theme-medieval .slot-card .detail { color: #ffecb3; background: rgba(0,0,0,0.4); border: 1px solid #3e2723; }
 body.theme-medieval .empty-slot { background: rgba(78, 52, 46, 0.4); border: 2px dashed #8d6e63; }
 body.theme-medieval .empty-slot:hover { background: rgba(78, 52, 46, 0.8); border: 2px solid #ffca28; }
+body.theme-medieval .item-title, body.theme-medieval .mc-title { color: #3e2723 !important; }
+body.theme-medieval .item-sub { color: #5d4037 !important; }
+body.theme-medieval .panel-body { background: #fdf5e6; color: #2c1a12; }
+body.theme-medieval #modal-box { background: #fdf5e6; color: #2c1a12; border: 3px solid #6d4c41; }
+body.theme-medieval #modal-title { color: #3e2723; }
+body.theme-medieval .slot-name { color: #ffca28 !important; }
+body.theme-medieval .slot-rep { color: #ffd54f !important; background: rgba(0,0,0,0.4) !important; }
+
+/* --- DARK OLED THEME --- */
+body.theme-dark {
+    background: #0f111a !important;
+    color: #e2e8f0;
+    --bg-main: #0f111a;
+    --bg-card: rgba(26, 32, 44, 0.95);
+    --primary: #6c5ce7;
+    --primary-dark: #a29bfe;
+    --success: #00b894;
+    --success-dark: #00a884;
+    --danger: #ff7675;
+    --danger-dark: #d63031;
+    --warning: #fdcb6e;
+    --purple: #fd79a8;
+    --text-dark: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+}
+body.theme-dark header { background: rgba(15, 17, 26, 0.85); border-bottom-color: rgba(255,255,255,0.08); }
+body.theme-dark .header-stat { background: #1e2533; border-color: rgba(255,255,255,0.1); color: #f8fafc; }
+body.theme-dark .bottom-nav { background: rgba(15, 17, 26, 0.95); border-top-color: rgba(255,255,255,0.08); }
+body.theme-dark .panel, body.theme-dark .item-row, body.theme-dark .manage-card {
+    background: #1e2533; border-color: rgba(255,255,255,0.08); color: #f8fafc;
+}
+body.theme-dark .item-title { color: #a29bfe !important; }
+body.theme-dark .item-sub { color: #94a3b8 !important; }
+body.theme-dark .mc-title { color: #f8fafc !important; }
+body.theme-dark .page-header { background: rgba(15, 17, 26, 0.9); color: #a29bfe; border-bottom-color: rgba(255,255,255,0.08); }
+body.theme-dark #modal-box { background: #1a202c; border-color: rgba(255,255,255,0.15); color: #f8fafc; }
+body.theme-dark #modal-title { color: #a29bfe; }
+body.theme-dark .floating-panel { background: #1a202c; border-color: rgba(255,255,255,0.15); color: #f8fafc; }
+body.theme-dark .panel-body { background: #141824; color: #f8fafc; }
+body.theme-dark .slot-card { background: #1a202c; border-color: rgba(255,255,255,0.15); color: #f8fafc; }
+body.theme-dark .slot-name { color: #a29bfe !important; }
+body.theme-dark .slot-details .detail { background: #2d3748; color: #e2e8f0; }
+body.theme-dark .fancy-select { background: #2d3748; color: #f8fafc; border-color: #4a5568; }
+
+/* --- COMPREHENSIVE MOBILE OPTIMIZATION --- */
+@media (max-width: 600px) {
+    * { touch-action: manipulation; }
+    
+    header { padding: 8px 10px; }
+    .top-row { gap: 6px; }
+    .header-stat { padding: 5px 8px; font-size: 0.75rem; border-radius: 12px; }
+    .header-stat.money { font-size: 0.88rem; }
+    .stat-icon { font-size: 0.88rem; }
+    
+    #main-content { padding: 10px 8px 85px 8px; }
+    .page-header { font-size: 1.05rem; padding: 10px 6px; margin-bottom: 10px; }
+    
+    .panel { padding: 12px; margin-bottom: 12px; border-radius: 12px; }
+    .item-row { padding: 10px 12px; margin-bottom: 10px; border-radius: 12px; gap: 8px; }
+    .item-title { font-size: 0.95rem; }
+    .item-sub { font-size: 0.78rem; }
+    
+    .btn { padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; }
+    .btn-massive { padding: 12px 14px; font-size: 0.95rem; border-radius: 12px; }
+    .fab-container { bottom: 70px; right: 12px; }
+    .fab-container .btn-massive { padding: 10px 18px; font-size: 0.92rem; }
+    
+    .bottom-nav { padding: 6px 2px; }
+    .nav-btn { font-size: 0.68rem; }
+    .nav-icon { font-size: 1.35rem; margin-bottom: 2px; }
+    
+    .manage-card { padding: 10px 12px; margin-bottom: 10px; border-radius: 12px; }
+    .mc-icon { width: 44px; height: 44px; font-size: 1.3rem; border-radius: 10px; }
+    .mc-title { font-size: 1rem; }
+    .mc-desc { font-size: 0.75rem; }
+    
+    #modal-box { padding: 16px 14px; border-radius: 16px; max-height: 88vh; }
+    #modal-title { font-size: 1.15rem; margin-bottom: 8px; }
+    #modal-desc { font-size: 0.88rem; }
+    
+    .endday-tabs { grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 8px; }
+    .endday-tab { padding: 6px 1px; font-size: 0.7rem; }
+    
+    .game-logo { font-size: 2.8rem; }
+    .logo-accent { font-size: 3.6rem; }
+    .logo-subtitle { font-size: 0.95rem; letter-spacing: 6px; }
+    
+    .dice-container { gap: 15px; margin: 10px 0; }
+    .dice-box { width: 65px; height: 65px; font-size: 2.8rem; border-radius: 12px; }
+}
